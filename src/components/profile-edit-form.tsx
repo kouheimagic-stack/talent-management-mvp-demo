@@ -1,206 +1,263 @@
 "use client";
 
-import type { ChangeEvent, ReactNode } from "react";
+import type { ChangeEvent, RefObject } from "react";
 import { useMemo, useRef, useState } from "react";
-import { Eye, EyeOff, ImagePlus, LockKeyhole, Save, Trash2, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  Camera,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  ImagePlus,
+  LockKeyhole,
+  Save,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useProfileDraft } from "@/hooks/use-profile-draft";
+import {
+  publicProfileFieldKeys,
+  type Mvp0Profile,
+  type ProfileFieldKey,
+  type ProfileVisibilityStatus,
+} from "@/lib/profile-storage";
 import type { EmployeeProfile } from "@/types/talent";
-
-type VisibilityStatus = "public" | "private" | "fixed_private";
-type VisibilityKey =
-  | "photo"
-  | "selfIntroduction"
-  | "careerHistories"
-  | "qualifications"
-  | "strengths"
-  | "skillsToGrow"
-  | "desiredCareerPublic"
-  | "desiredCareerPrivate"
-  | "mobility"
-  | "preMeetingMemo"
-  | "currentWork";
-
-type ProfileDraft = {
-  photoUrl: string;
-  selfIntroduction: string;
-  currentWork: string;
-  careerHistories: string;
-  qualifications: string;
-  strengths: string;
-  skillsToGrow: string;
-  desiredCareerPublic: string;
-  desiredCareerPrivate: string;
-  mobility: string;
-  preMeetingMemo: string;
-  updatedAt?: string;
-  visibility: Record<VisibilityKey, VisibilityStatus>;
-};
-
-type FieldConfig = {
-  key: Exclude<keyof ProfileDraft, "visibility" | "updatedAt">;
-  visibilityKey: VisibilityKey;
-  label: string;
-  description: string;
-  placeholder: string;
-  toggleable?: boolean;
-  fixedPrivate?: boolean;
-  rows?: number;
-};
-
-const keyPrefix = "profile-edit-v4-";
-const publicToggleText =
-  "この項目を公開すると、全社員が閲覧できるようになります。公開してもよろしいですか？";
-
-const fields: FieldConfig[] = [
-  {
-    key: "selfIntroduction",
-    visibilityKey: "selfIntroduction",
-    label: "自己紹介",
-    description: "公開プロフィールで最初に読まれる本人の説明です。",
-    placeholder: "担当領域、働き方、周囲に知ってほしいことを記入",
-    toggleable: true,
-  },
-  {
-    key: "currentWork",
-    visibilityKey: "currentWork",
-    label: "現在の仕事内容",
-    description: "自分の整理用情報です。MVP 0では公開プロフィールには表示しません。",
-    placeholder: "今担当している業務、役割、主な責任範囲",
-  },
-  {
-    key: "careerHistories",
-    visibilityKey: "careerHistories",
-    label: "社内経歴",
-    description: "社内での異動、担当変更、プロジェクト経験を整理します。",
-    placeholder: "2024年4月 プロダクト開発部に異動、決済基盤の改善を担当",
-    toggleable: true,
-  },
-  {
-    key: "qualifications",
-    visibilityKey: "qualifications",
-    label: "保有資格",
-    description: "公開すると、社内で資格保有者を探す時に見つかりやすくなります。",
-    placeholder: "AWS SAA、簿記2級、TOEIC 850",
-    toggleable: true,
-  },
-  {
-    key: "strengths",
-    visibilityKey: "strengths",
-    label: "得意領域",
-    description: "公開すると、相談先や協業相手として見つかりやすくなります。",
-    placeholder: "要件整理、データ分析、顧客折衝",
-    toggleable: true,
-  },
-  {
-    key: "skillsToGrow",
-    visibilityKey: "skillsToGrow",
-    label: "伸ばしたいスキル",
-    description: "公開すると、学びたい領域が周囲に伝わります。",
-    placeholder: "プロダクト戦略、ピープルマネジメント、英語でのファシリテーション",
-    toggleable: true,
-  },
-  {
-    key: "desiredCareerPublic",
-    visibilityKey: "desiredCareerPublic",
-    label: "希望キャリア 公開用コメント",
-    description: "他社員に見せてもよい将来像です。",
-    placeholder: "将来的にプロダクトマネジメント領域に挑戦したい",
-    toggleable: true,
-  },
-  {
-    key: "desiredCareerPrivate",
-    visibilityKey: "desiredCareerPrivate",
-    label: "希望キャリア 非公開コメント",
-    description: "本人だけが管理する相談用メモです。公開プロフィールには表示しません。",
-    placeholder: "現部署では成長機会が少ないため、異動も含めて相談したい",
-    fixedPrivate: true,
-  },
-  {
-    key: "mobility",
-    visibilityKey: "mobility",
-    label: "異動希望",
-    description: "非公開固定です。公開プロフィールには表示しません。",
-    placeholder: "半年以内にデータ領域への異動を相談したい",
-    fixedPrivate: true,
-  },
-  {
-    key: "preMeetingMemo",
-    visibilityKey: "preMeetingMemo",
-    label: "面談前メモ",
-    description: "非公開固定です。MVP 1の面談支援で使う予定の本人メモです。",
-    placeholder: "面談で相談したいこと、今後整理したいこと",
-    fixedPrivate: true,
-  },
-];
 
 type ProfileEditFormProps = {
   employee: EmployeeProfile;
 };
 
+type ProfileFieldConfig = {
+  key: keyof Omit<Mvp0Profile, "visibility" | "updatedAt">;
+  visibilityKey: ProfileFieldKey;
+  title: string;
+  eyebrow: string;
+  description: string;
+  placeholder: string;
+  rows?: number;
+  toggleable?: boolean;
+  fixedPrivate?: boolean;
+};
+
+const publicToggleText =
+  "この項目を公開すると、全社員が閲覧できるようになります。公開してもよろしいですか？";
+
+const fieldSections: Array<{
+  id: string;
+  title: string;
+  description: string;
+  fields: ProfileFieldConfig[];
+}> = [
+  {
+    id: "intro",
+    title: "自己紹介",
+    description: "他社員が最初に読むプロフィールです。担当領域や話しかけてほしいテーマを書きます。",
+    fields: [
+      {
+        key: "selfIntroduction",
+        visibilityKey: "selfIntroduction",
+        title: "自己紹介",
+        eyebrow: "Public profile",
+        description: "あなたの役割、得意なこと、周囲に知ってほしいことを短くまとめます。",
+        placeholder:
+          "例: プロダクト開発部で決済領域の改善を担当しています。ユーザー課題の整理や関係者との合意形成が得意です。",
+        rows: 5,
+        toggleable: true,
+      },
+    ],
+  },
+  {
+    id: "work",
+    title: "現在の仕事内容",
+    description: "いま何を担当しているかを整理します。MVP 0では自分用の非公開情報として扱います。",
+    fields: [
+      {
+        key: "currentWork",
+        visibilityKey: "currentWork",
+        title: "現在の仕事内容",
+        eyebrow: "Private note",
+        description: "担当業務、責任範囲、最近取り組んでいるテーマを書きます。",
+        placeholder:
+          "例: 決済導線の改善、開発優先度の整理、CSから上がる問い合わせの分析を担当しています。",
+        rows: 4,
+      },
+    ],
+  },
+  {
+    id: "history",
+    title: "社内経歴",
+    description: "社内で積み上げてきた経験を整理します。公開するとキャリア参考情報になります。",
+    fields: [
+      {
+        key: "careerHistories",
+        visibilityKey: "careerHistories",
+        title: "社内経歴",
+        eyebrow: "Experience",
+        description: "異動、担当変更、プロジェクト経験を時系列で書きます。",
+        placeholder:
+          "例:\n2024年4月 プロダクト開発部へ異動。決済基盤の改善を担当。\n2025年1月 新規オンボーディング改善プロジェクトをリード。",
+        rows: 6,
+        toggleable: true,
+      },
+    ],
+  },
+  {
+    id: "skills",
+    title: "資格・得意領域",
+    description: "社内で相談されやすくなる情報です。公開範囲を見ながら整えます。",
+    fields: [
+      {
+        key: "qualifications",
+        visibilityKey: "qualifications",
+        title: "保有資格",
+        eyebrow: "Qualifications",
+        description: "資格、認定、研修修了などをカンマ区切りまたは改行で入力します。",
+        placeholder: "例: 認定スクラムプロダクトオーナー、応用情報技術者、TOEIC 850",
+        rows: 3,
+        toggleable: true,
+      },
+      {
+        key: "strengths",
+        visibilityKey: "strengths",
+        title: "得意領域",
+        eyebrow: "Strengths",
+        description: "周囲から相談してほしい領域や、得意な仕事の進め方を書きます。",
+        placeholder: "例: 課題構造化、合意形成、顧客理解、プロジェクト推進",
+        rows: 3,
+        toggleable: true,
+      },
+      {
+        key: "skillsToGrow",
+        visibilityKey: "skillsToGrow",
+        title: "伸ばしたいスキル",
+        eyebrow: "Growth",
+        description: "これから伸ばしたい力を書きます。公開すると学びたい方向性が周囲に伝わります。",
+        placeholder: "例: プロダクト戦略、データ分析、ピープルマネジメント、英語でのファシリテーション",
+        rows: 3,
+        toggleable: true,
+      },
+    ],
+  },
+  {
+    id: "future",
+    title: "将来やりたいこと",
+    description: "公開できるキャリア意向と、本人だけの非公開メモを分けて管理します。",
+    fields: [
+      {
+        key: "desiredCareerPublic",
+        visibilityKey: "desiredCareerPublic",
+        title: "希望キャリア 公開用コメント",
+        eyebrow: "Visible career note",
+        description: "他社員に見えてもよい将来像です。協業や相談につながる粒度で書きます。",
+        placeholder: "例: 将来的にはプロダクト戦略や新規事業の立ち上げに挑戦したいです。",
+        rows: 4,
+        toggleable: true,
+      },
+      {
+        key: "desiredCareerPrivate",
+        visibilityKey: "desiredCareerPrivate",
+        title: "希望キャリア 非公開コメント",
+        eyebrow: "Private career note",
+        description: "まだ公開したくない悩みや、整理途中の希望を書きます。",
+        placeholder: "例: 現部署での成長機会に不安があり、異動も含めて相談したい。",
+        rows: 4,
+        fixedPrivate: true,
+      },
+    ],
+  },
+  {
+    id: "private",
+    title: "非公開メモ",
+    description: "公開プロフィールには出さない本人用メモです。面談機能はMVP 1以降で扱います。",
+    fields: [
+      {
+        key: "mobility",
+        visibilityKey: "mobility",
+        title: "異動希望",
+        eyebrow: "Fixed private",
+        description: "異動や勤務地に関する希望です。非公開固定です。",
+        placeholder: "例: 半年以内にデータ領域への異動を相談したい。",
+        rows: 3,
+        fixedPrivate: true,
+      },
+      {
+        key: "preMeetingMemo",
+        visibilityKey: "preMeetingMemo",
+        title: "面談前メモ",
+        eyebrow: "Fixed private",
+        description: "次回の面談で相談したいことを残します。非公開固定です。",
+        placeholder: "例: 今の業務負荷、今後挑戦したい仕事、キャリアの不安について相談したい。",
+        rows: 4,
+        fixedPrivate: true,
+      },
+    ],
+  },
+];
+
+const fieldLabels: Record<ProfileFieldKey, string> = {
+  photo: "顔写真",
+  selfIntroduction: "自己紹介",
+  currentWork: "現在の仕事内容",
+  careerHistories: "社内経歴",
+  qualifications: "保有資格",
+  strengths: "得意領域",
+  skillsToGrow: "伸ばしたいスキル",
+  desiredCareerPublic: "希望キャリア 公開用コメント",
+  desiredCareerPrivate: "希望キャリア 非公開コメント",
+  mobility: "異動希望",
+  preMeetingMemo: "面談前メモ",
+};
+
 export function ProfileEditForm({ employee }: ProfileEditFormProps) {
-  const [draft, setDraft] = useState<ProfileDraft>(() => initialDraft(employee));
+  const {
+    draft,
+    updateField,
+    updateVisibility,
+    save,
+    saveState,
+    hasUnsavedChanges,
+    completion,
+    visibilitySummary,
+  } = useProfileDraft(employee);
   const [errors, setErrors] = useState<string[]>([]);
-  const [savedMessage, setSavedMessage] = useState("");
-  const [confirmingKey, setConfirmingKey] = useState<VisibilityKey | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [confirmingKey, setConfirmingKey] = useState<ProfileFieldKey | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const summary = useMemo(() => {
-    const publicItems = [
-      ["顔写真", draft.visibility.photo],
-      ["自己紹介", draft.visibility.selfIntroduction],
-      ["社内経歴", draft.visibility.careerHistories],
-      ["保有資格", draft.visibility.qualifications],
-      ["得意領域", draft.visibility.strengths],
-      ["伸ばしたいスキル", draft.visibility.skillsToGrow],
-      ["希望キャリア 公開用コメント", draft.visibility.desiredCareerPublic],
-    ];
+  const saveReview = useMemo(() => {
+    const publicItems = publicProfileFieldKeys
+      .filter((key) => draft.visibility[key] === "public")
+      .map((key) => fieldLabels[key]);
+    const privateItems = publicProfileFieldKeys
+      .filter((key) => draft.visibility[key] !== "public")
+      .map((key) => fieldLabels[key]);
+
     return {
-      publicItems: publicItems.filter(([, visibility]) => visibility === "public").map(([label]) => label),
-      privateItems: publicItems.filter(([, visibility]) => visibility !== "public").map(([label]) => label),
-      fixedPrivateItems: ["現在の仕事内容", "希望キャリア 非公開コメント", "異動希望", "面談前メモ"],
+      publicItems,
+      privateItems,
+      fixedPrivateItems: ["希望キャリア 非公開コメント", "異動希望", "面談前メモ"],
     };
   }, [draft.visibility]);
 
-  function update<K extends Exclude<keyof ProfileDraft, "visibility" | "updatedAt">>(key: K, value: ProfileDraft[K]) {
-    setDraft((current) => ({ ...current, [key]: value }));
-    setSavedMessage("");
-  }
-
-  function requestToggle(key: VisibilityKey) {
+  function requestToggle(key: ProfileFieldKey) {
     if (draft.visibility[key] === "public") {
-      setVisibility(key, "private");
+      updateVisibility(key, "private");
       return;
     }
     setConfirmingKey(key);
   }
 
   function confirmPublic() {
-    if (!confirmingKey) {
-      return;
-    }
-    setVisibility(confirmingKey, "public");
+    if (!confirmingKey) return;
+    updateVisibility(confirmingKey, "public");
     setConfirmingKey(null);
-  }
-
-  function setVisibility(key: VisibilityKey, value: VisibilityStatus) {
-    setErrors([]);
-    setDraft((current) => ({
-      ...current,
-      visibility: { ...current.visibility, [key]: value },
-    }));
-    setSavedMessage("");
   }
 
   function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       setErrors(["顔写真の形式が不正です。画像ファイルを選択してください。"]);
@@ -209,110 +266,121 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      update("photoUrl", String(reader.result));
+      updateField("photoUrl", String(reader.result));
       setErrors([]);
     };
     reader.readAsDataURL(file);
   }
 
   function removePhoto() {
-    update("photoUrl", "");
+    updateField("photoUrl", "");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }
 
-  function save() {
+  async function handleSave() {
     const nextErrors = validate(draft);
     setErrors(nextErrors);
-
-    if (nextErrors.length > 0) {
-      setSavedMessage("");
-      return;
-    }
-
-    const nextDraft = {
-      ...draft,
-      updatedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
-    };
-    window.localStorage.setItem(`${keyPrefix}${employee.id}`, JSON.stringify(nextDraft));
-    setDraft(nextDraft);
-    setSavedMessage("保存しました。リロード後も保存内容が再表示されます。");
+    if (nextErrors.length > 0) return;
+    await save();
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="border-sky-100 bg-gradient-to-br from-white to-sky-50/60 shadow-none">
-        <CardHeader>
-          <CardTitle>プロフィール編集</CardTitle>
-          <CardDescription>
-            自分の情報を入力し、全社員に公開する項目だけを選びます。非公開固定の項目は公開プロフィールには表示されません。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-          <section className="space-y-5">
-            <PhotoEditor
-              employee={employee}
-              photoUrl={draft.photoUrl}
-              visibility={draft.visibility.photo}
-              onUrlChange={(value) => update("photoUrl", value)}
-              onUpload={handleImageUpload}
-              onRemove={removePhoto}
-              onToggle={() => requestToggle("photo")}
-              fileInputRef={fileInputRef}
-            />
-
-            <SaveReview summary={summary} />
-
-            <Button type="button" variant="secondary" onClick={() => setShowPreview((value) => !value)} className="w-full">
-              <Eye size={17} />
-              公開プロフィールプレビュー
-            </Button>
-            {showPreview ? <PublicPreview draft={draft} employee={employee} /> : null}
-          </section>
-
-          <section className="space-y-4">
-            {fields.map((field) => (
-              <ProfileField
-                key={field.key}
-                field={field}
-                value={String(draft[field.key])}
-                visibility={draft.visibility[field.visibilityKey]}
-                onChange={(value) => update(field.key, value)}
-                onToggle={() => requestToggle(field.visibilityKey)}
+    <div className="space-y-8">
+      <section className="rounded-[2rem] border border-sky-100 bg-gradient-to-br from-white via-white to-sky-50 p-5 shadow-sm sm:p-7">
+        <div className="grid gap-7 lg:grid-cols-[260px_1fr] lg:items-center">
+          <PhotoPanel
+            employee={employee}
+            draft={draft}
+            fileInputRef={fileInputRef}
+            onUpload={handleImageUpload}
+            onRemove={removePhoto}
+            onToggle={() => requestToggle("photo")}
+          />
+          <div className="min-w-0">
+            <Badge variant="blue" className="w-fit">
+              <Sparkles size={13} />
+              プロフィールを育てる
+            </Badge>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#0f2f57]">
+              {employee.fullName}さんの社内プロフィール
+            </h2>
+            <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+              公開したい情報だけを選びながら、他社員に伝わるプロフィールを整えます。非公開固定の項目は公開プロフィールには表示されません。
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <Metric label="完成度" value={`${completion.percentage}%`} tone="blue" />
+              <Metric label="公開中" value={`${visibilitySummary.publicCount}項目`} tone="green" />
+              <Metric
+                label="非公開"
+                value={`${visibilitySummary.privateCount + visibilitySummary.fixedPrivateCount}項目`}
+                tone="slate"
               />
-            ))}
-
-            {errors.length > 0 ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                <p className="font-semibold">保存できません。理由を確認してください。</p>
-                <ul className="mt-2 list-disc pl-5">
-                  {errors.map((error) => (
-                    <li key={error}>{error}</li>
-                  ))}
-                </ul>
+            </div>
+            {hasUnsavedChanges ? (
+              <div className="mt-5 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                <AlertCircle size={17} />
+                未保存の変更があります
               </div>
             ) : null}
+          </div>
+        </div>
+      </section>
 
-            {savedMessage ? (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
-                {savedMessage}
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
+        <main className="space-y-8">
+          <CompletionGuide completion={completion} />
+
+          {fieldSections.map((section) => (
+            <section key={section.id} className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+              <div className="mb-6 max-w-2xl">
+                <p className="text-sm font-semibold text-sky-600">{section.title}</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-[#0f2f57]">{section.title}</h3>
+                <p className="mt-2 leading-7 text-slate-600">{section.description}</p>
               </div>
-            ) : null}
+              <div className="space-y-5">
+                {section.fields.map((field) => (
+                  <ProfileField
+                    key={field.key}
+                    field={field}
+                    value={String(draft[field.key] ?? "")}
+                    visibility={draft.visibility[field.visibilityKey]}
+                    onChange={(value) => updateField(field.key, value)}
+                    onToggle={() => requestToggle(field.visibilityKey)}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </main>
 
-            <Button type="button" onClick={save} className="w-full">
-              <Save size={17} />
-              保存
-            </Button>
-          </section>
-        </CardContent>
-      </Card>
+        <aside className="space-y-5 xl:sticky xl:top-28">
+          <PublicPreview employee={employee} draft={draft} />
+          <SaveReview review={saveReview} />
+          {errors.length > 0 ? <ErrorPanel errors={errors} /> : null}
+          <SavePanel
+            saveState={saveState}
+            hasUnsavedChanges={hasUnsavedChanges}
+            onSave={handleSave}
+          />
+        </aside>
+      </div>
+
+      <div className="sticky bottom-3 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur md:hidden">
+        <Button type="button" onClick={handleSave} disabled={saveState === "saving"} className="w-full">
+          <Save size={17} />
+          {saveState === "saving" ? "保存中..." : "保存する"}
+        </Button>
+      </div>
 
       {confirmingKey ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-slate-950/30 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-40 grid place-items-center bg-slate-950/35 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
             <Badge variant="warning">公開設定の確認</Badge>
-            <h2 className="mt-4 text-xl font-bold text-[#0f2f57]">この項目を公開しますか</h2>
+            <h2 className="mt-4 text-xl font-bold text-[#0f2f57]">
+              {fieldLabels[confirmingKey]}を公開しますか
+            </h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">{publicToggleText}</p>
             <div className="mt-6 flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setConfirmingKey(null)}>
@@ -329,73 +397,49 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
   );
 }
 
-function PhotoEditor({
+function PhotoPanel({
   employee,
-  photoUrl,
-  visibility,
-  onUrlChange,
+  draft,
+  fileInputRef,
   onUpload,
   onRemove,
   onToggle,
-  fileInputRef,
 }: {
   employee: EmployeeProfile;
-  photoUrl: string;
-  visibility: VisibilityStatus;
-  onUrlChange: (value: string) => void;
+  draft: Mvp0Profile;
+  fileInputRef: RefObject<HTMLInputElement | null>;
   onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
   onToggle: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-        <div className="relative w-fit">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photoUrl || employee.photoUrl}
-            alt={`${employee.fullName}の顔写真プレビュー`}
-            className="size-28 rounded-3xl border border-slate-200 object-cover"
-          />
-          <div className="absolute -right-2 -top-2">
-            <VisibilityBadge visibility={visibility} />
-          </div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xl font-bold text-[#0f2f57]">{employee.fullName}</p>
-          <p className="mt-1 text-sm text-slate-500">
-            {employee.department} / {employee.position}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button type="button" variant="sky" onClick={() => fileInputRef.current?.click()}>
-              <ImagePlus size={17} />
-              画像アップロード
-            </Button>
-            <Button type="button" variant="secondary" onClick={onRemove}>
-              <Trash2 size={17} />
-              画像削除
-            </Button>
-          </div>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={onUpload} className="hidden" />
+    <div className="rounded-3xl border border-slate-200 bg-white p-5">
+      <div className="relative mx-auto w-fit">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={draft.photoUrl || employee.photoUrl}
+          alt={`${employee.fullName}の顔写真プレビュー`}
+          className="size-40 rounded-[1.75rem] border border-slate-200 object-cover ring-4 ring-sky-50"
+        />
+        <div className="absolute -right-2 -top-2">
+          <VisibilityBadge visibility={draft.visibility.photo} />
         </div>
       </div>
-      <label className="mt-5 block text-sm font-semibold text-slate-700">
-        顔写真URL
-        <div className="relative mt-2">
-          <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-          <Input
-            value={photoUrl}
-            onChange={(event) => onUrlChange(event.target.value)}
-            className="pl-10"
-            placeholder="https://... または画像アップロード"
-          />
-        </div>
-      </label>
+      <div className="mt-5 grid gap-2">
+        <Button type="button" variant="sky" onClick={() => fileInputRef.current?.click()}>
+          <ImagePlus size={17} />
+          画像を選ぶ
+        </Button>
+        <Button type="button" variant="secondary" onClick={onRemove}>
+          <Trash2 size={17} />
+          画像を削除
+        </Button>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={onUpload} className="hidden" />
+      </div>
       <div className="mt-4">
         <VisibilityToggle
-          label={visibility === "public" ? "顔写真を公開中" : "顔写真を社員全体に公開する"}
-          visibility={visibility}
+          visibility={draft.visibility.photo}
+          label={draft.visibility.photo === "public" ? "顔写真は公開中" : "顔写真を公開する"}
           onToggle={onToggle}
         />
       </div>
@@ -403,34 +447,64 @@ function PhotoEditor({
   );
 }
 
-function SaveReview({ summary }: { summary: { publicItems: string[]; privateItems: string[]; fixedPrivateItems: string[] } }) {
+function Metric({ label, value, tone }: { label: string; value: string; tone: "blue" | "green" | "slate" }) {
+  const toneClass =
+    tone === "blue"
+      ? "border-sky-100 bg-sky-50 text-sky-800"
+      : tone === "green"
+        ? "border-emerald-100 bg-emerald-50 text-emerald-800"
+        : "border-slate-200 bg-slate-50 text-slate-700";
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="font-semibold text-[#0f2f57]">保存前確認</p>
-      <p className="mt-1 text-sm text-slate-500">保存すると、以下の公開状態で反映されます。</p>
-      <ReviewGroup title="今回公開される項目" items={summary.publicItems} tone="public" />
-      <ReviewGroup title="非公開のまま保存される項目" items={summary.privateItems} tone="private" />
-      <ReviewGroup title="非公開固定の項目" items={summary.fixedPrivateItems} tone="fixed" />
+    <div className={`rounded-2xl border p-4 ${toneClass}`}>
+      <p className="text-xs font-semibold">{label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
     </div>
   );
 }
 
-function ReviewGroup({ title, items, tone }: { title: string; items: string[]; tone: "public" | "private" | "fixed" }) {
+function CompletionGuide({
+  completion,
+}: {
+  completion: {
+    percentage: number;
+    missing: Array<{ key: string; label: string; help: string }>;
+  };
+}) {
   return (
-    <div className="mt-4">
-      <p className="text-xs font-semibold text-slate-500">{title}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {items.length > 0 ? (
-          items.map((item) => (
-            <Badge key={item} variant={tone === "public" ? "success" : tone === "fixed" ? "warning" : "default"}>
-              {item}
-            </Badge>
+    <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-sky-600">Completion guide</p>
+          <h3 className="mt-2 text-2xl font-semibold text-[#0f2f57]">完成度を上げるために</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            未入力の項目を埋めると、社内プロフィールとして伝わりやすくなります。
+          </p>
+        </div>
+        <div className="min-w-32 rounded-2xl bg-[#0f2f57] px-5 py-4 text-center text-white">
+          <p className="text-sm">完成度</p>
+          <p className="text-3xl font-bold">{completion.percentage}%</p>
+        </div>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {completion.missing.length > 0 ? (
+          completion.missing.map((item) => (
+            <div key={item.key} className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="font-semibold text-amber-900">{item.label}</p>
+              <p className="mt-1 text-sm leading-6 text-amber-800">{item.help}</p>
+            </div>
           ))
         ) : (
-          <span className="text-sm text-slate-400">なし</span>
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 md:col-span-2">
+            <p className="flex items-center gap-2 font-semibold text-emerald-900">
+              <CheckCircle2 size={18} />
+              基本項目は入力済みです
+            </p>
+            <p className="mt-1 text-sm text-emerald-800">公開プロフィールの見え方を確認して保存してください。</p>
+          </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -441,18 +515,19 @@ function ProfileField({
   onChange,
   onToggle,
 }: {
-  field: FieldConfig;
+  field: ProfileFieldConfig;
   value: string;
-  visibility: VisibilityStatus;
+  visibility: ProfileVisibilityStatus;
   onChange: (value: string) => void;
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+    <div className="rounded-3xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="font-semibold text-[#0f2f57]">{field.label}</p>
-          <p className="mt-1 text-sm leading-6 text-slate-500">{field.description}</p>
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-wide text-sky-600">{field.eyebrow}</p>
+          <h4 className="mt-1 text-lg font-semibold text-[#0f2f57]">{field.title}</h4>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{field.description}</p>
         </div>
         <VisibilityBadge visibility={visibility} />
       </div>
@@ -460,21 +535,21 @@ function ProfileField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={field.placeholder}
-        className="mt-4"
+        className="mt-4 min-h-28 bg-white text-base leading-7"
         rows={field.rows ?? 4}
       />
       <div className="mt-4">
         {field.toggleable ? (
           <VisibilityToggle
-            label={visibility === "public" ? "公開中。クリックで非公開に戻す" : "社員全体に公開する"}
             visibility={visibility}
+            label={visibility === "public" ? "公開中。押すと非公開" : "社員全体に公開する"}
             onToggle={onToggle}
           />
         ) : (
-          <p className="inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
-            <LockKeyhole size={14} />
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-500">
+            <LockKeyhole size={15} />
             {field.fixedPrivate ? "非公開固定" : "非公開"}
-          </p>
+          </div>
         )}
       </div>
     </div>
@@ -487,7 +562,7 @@ function VisibilityToggle({
   onToggle,
 }: {
   label: string;
-  visibility: VisibilityStatus;
+  visibility: ProfileVisibilityStatus;
   onToggle: () => void;
 }) {
   const isPublic = visibility === "public";
@@ -496,21 +571,23 @@ function VisibilityToggle({
     <button
       type="button"
       onClick={onToggle}
-      className={`inline-flex items-center gap-3 rounded-full border px-3 py-2 text-sm font-semibold transition ${
+      className={`inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition sm:w-auto ${
         isPublic
           ? "border-sky-200 bg-sky-50 text-sky-800"
-          : "border-slate-200 bg-slate-50 text-slate-600"
+          : "border-slate-200 bg-white text-slate-600"
       }`}
     >
-      <span className={`relative h-5 w-9 rounded-full transition ${isPublic ? "bg-sky-500" : "bg-slate-300"}`}>
-        <span className={`absolute top-0.5 size-4 rounded-full bg-white transition ${isPublic ? "left-4" : "left-0.5"}`} />
+      <span>{label}</span>
+      <span className={`relative h-6 w-11 shrink-0 rounded-full transition ${isPublic ? "bg-sky-500" : "bg-slate-300"}`}>
+        <span
+          className={`absolute top-1 size-4 rounded-full bg-white transition ${isPublic ? "left-6" : "left-1"}`}
+        />
       </span>
-      {label}
     </button>
   );
 }
 
-function VisibilityBadge({ visibility }: { visibility: VisibilityStatus }) {
+function VisibilityBadge({ visibility }: { visibility: ProfileVisibilityStatus }) {
   if (visibility === "public") {
     return (
       <Badge variant="success" className="w-fit">
@@ -537,108 +614,157 @@ function VisibilityBadge({ visibility }: { visibility: VisibilityStatus }) {
   );
 }
 
-function PublicPreview({ draft, employee }: { draft: ProfileDraft; employee: EmployeeProfile }) {
-  const rows: [string, ReactNode, VisibilityStatus][] = [
-    ["自己紹介", draft.selfIntroduction, draft.visibility.selfIntroduction],
-    ["社内経歴", draft.careerHistories, draft.visibility.careerHistories],
-    ["保有資格", draft.qualifications, draft.visibility.qualifications],
-    ["得意領域", draft.strengths, draft.visibility.strengths],
-    ["伸ばしたいスキル", draft.skillsToGrow, draft.visibility.skillsToGrow],
-    ["希望キャリア 公開用コメント", draft.desiredCareerPublic, draft.visibility.desiredCareerPublic],
-  ];
+function PublicPreview({ employee, draft }: { employee: EmployeeProfile; draft: Mvp0Profile }) {
+  const rows = [
+    { key: "selfIntroduction", label: "自己紹介", value: draft.selfIntroduction },
+    { key: "careerHistories", label: "社内経歴", value: draft.careerHistories },
+    { key: "qualifications", label: "保有資格", value: draft.qualifications },
+    { key: "strengths", label: "得意領域", value: draft.strengths },
+    { key: "skillsToGrow", label: "伸ばしたいスキル", value: draft.skillsToGrow },
+    { key: "desiredCareerPublic", label: "将来やりたいこと", value: draft.desiredCareerPublic },
+  ].filter((row) => draft.visibility[row.key as ProfileFieldKey] === "public" && row.value.trim());
 
   return (
-    <div className="rounded-2xl border border-sky-100 bg-white p-5">
-      <div className="flex items-center gap-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={draft.visibility.photo === "public" ? draft.photoUrl || employee.photoUrl : employee.photoUrl}
-          alt="公開プロフィールの顔写真"
-          className="size-16 rounded-2xl object-cover"
-        />
+    <section className="rounded-[2rem] border border-sky-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-bold text-[#0f2f57]">{employee.fullName}</p>
-          <p className="text-sm text-slate-500">
-            {employee.department} / {employee.position}
-          </p>
+          <p className="text-sm font-semibold text-sky-600">Live preview</p>
+          <h3 className="mt-1 text-xl font-semibold text-[#0f2f57]">他社員からの見え方</h3>
+        </div>
+        <Badge variant="blue">リアルタイム</Badge>
+      </div>
+      <div className="mt-5 rounded-3xl bg-slate-50 p-4">
+        <div className="flex gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={draft.visibility.photo === "public" ? draft.photoUrl || employee.photoUrl : employee.photoUrl}
+            alt="公開プロフィールの顔写真"
+            className="size-20 rounded-2xl object-cover"
+          />
+          <div className="min-w-0">
+            <p className="font-bold text-[#0f2f57]">{employee.fullName}</p>
+            <p className="mt-1 text-sm text-slate-500">
+              {employee.department} / {employee.position}
+            </p>
+            <p className="mt-2 text-xs text-slate-500">非公開項目と空項目は表示されません。</p>
+          </div>
         </div>
       </div>
-      <div className="mt-5 space-y-3">
-        {rows.map(([label, value, visibility]) => (
-          <div key={label} className="rounded-xl bg-slate-50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-[#0f2f57]">{label}</p>
-              <VisibilityBadge visibility={visibility} />
+      <div className="mt-4 space-y-3">
+        {rows.length > 0 ? (
+          rows.map((row) => (
+            <div key={row.key} className="rounded-2xl border border-slate-200 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-[#0f2f57]">{row.label}</p>
+                <Badge variant="success">公開中</Badge>
+              </div>
+              <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-600">{row.value}</p>
             </div>
-            <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
-              {visibility === "public" ? value : "公開プロフィールには表示されません。"}
-            </p>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+            <Camera className="mx-auto text-slate-400" size={24} />
+            <p className="mt-2 font-semibold text-[#0f2f57]">公開される追加情報はまだありません</p>
+            <p className="mt-1 text-sm text-slate-500">公開トグルをオンにするとここに表示されます。</p>
           </div>
-        ))}
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SaveReview({
+  review,
+}: {
+  review: { publicItems: string[]; privateItems: string[]; fixedPrivateItems: string[] };
+}) {
+  return (
+    <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="text-lg font-semibold text-[#0f2f57]">保存前確認</h3>
+      <p className="mt-1 text-sm text-slate-500">保存すると、この公開状態で反映されます。</p>
+      <ReviewGroup title="今回公開される項目" items={review.publicItems} variant="success" />
+      <ReviewGroup title="非公開のまま保存される項目" items={review.privateItems} variant="default" />
+      <ReviewGroup title="非公開固定の項目" items={review.fixedPrivateItems} variant="warning" />
+    </section>
+  );
+}
+
+function ReviewGroup({
+  title,
+  items,
+  variant,
+}: {
+  title: string;
+  items: string[];
+  variant: "success" | "default" | "warning";
+}) {
+  return (
+    <div className="mt-4">
+      <p className="text-xs font-semibold text-slate-500">{title}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {items.length > 0 ? (
+          items.map((item) => (
+            <Badge key={item} variant={variant}>
+              {item}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-sm text-slate-400">なし</span>
+        )}
       </div>
     </div>
   );
 }
 
-function initialDraft(employee: EmployeeProfile): ProfileDraft {
-  if (typeof window !== "undefined") {
-    const raw = window.localStorage.getItem(`${keyPrefix}${employee.id}`);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<ProfileDraft> & { desiredCareer?: string };
-      return normalizeDraft(employee, parsed);
-    }
-  }
-
-  return normalizeDraft(employee, {});
+function ErrorPanel({ errors }: { errors: string[] }) {
+  return (
+    <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+      <p className="font-semibold">保存できません。理由を確認してください。</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        {errors.map((error) => (
+          <li key={error}>{error}</li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-function normalizeDraft(employee: EmployeeProfile, draft: Partial<ProfileDraft> & { desiredCareer?: string }): ProfileDraft {
-  return {
-    photoUrl: draft.photoUrl ?? employee.photoUrl,
-    selfIntroduction: draft.selfIntroduction ?? `${employee.department}で${employee.position}を担当しています。`,
-    currentWork: draft.currentWork ?? `${employee.focusTheme}を中心に担当しています。`,
-    careerHistories:
-      draft.careerHistories ??
-      employee.careerHistories.map((history) => `${history.title}: ${history.summary}`).join("\n"),
-    qualifications: draft.qualifications ?? employee.certifications.map((certification) => certification.name).join("、"),
-    strengths: draft.strengths ?? employee.strengths.join("、"),
-    skillsToGrow: draft.skillsToGrow ?? employee.careerPreference.skillsToDevelop.join("、"),
-    desiredCareerPublic: draft.desiredCareerPublic ?? draft.desiredCareer ?? "",
-    desiredCareerPrivate: draft.desiredCareerPrivate ?? "",
-    mobility: draft.mobility ?? employee.careerPreference.mobility,
-    preMeetingMemo: draft.preMeetingMemo ?? "",
-    updatedAt: draft.updatedAt,
-    visibility: {
-      ...defaultVisibility(),
-      ...draft.visibility,
-      desiredCareerPrivate: "fixed_private",
-      mobility: "fixed_private",
-      preMeetingMemo: "fixed_private",
-      currentWork: "private",
-    },
-  };
+function SavePanel({
+  saveState,
+  hasUnsavedChanges,
+  onSave,
+}: {
+  saveState: "idle" | "saving" | "saved";
+  hasUnsavedChanges: boolean;
+  onSave: () => void;
+}) {
+  return (
+    <section className="hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:block">
+      {hasUnsavedChanges ? (
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-amber-700">
+          <AlertCircle size={16} />
+          未保存の変更があります
+        </p>
+      ) : saveState === "saved" ? (
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-700">
+          <CheckCircle2 size={16} />
+          保存しました
+        </p>
+      ) : (
+        <p className="mb-3 text-sm text-slate-500">変更後は保存してください。</p>
+      )}
+      <Button type="button" onClick={onSave} disabled={saveState === "saving"} className="w-full">
+        <Save size={17} />
+        {saveState === "saving" ? "保存中..." : "保存する"}
+      </Button>
+    </section>
+  );
 }
 
-function defaultVisibility(): Record<VisibilityKey, VisibilityStatus> {
-  return {
-    photo: "public",
-    selfIntroduction: "public",
-    careerHistories: "public",
-    qualifications: "public",
-    strengths: "public",
-    skillsToGrow: "private",
-    desiredCareerPublic: "private",
-    desiredCareerPrivate: "fixed_private",
-    mobility: "fixed_private",
-    preMeetingMemo: "fixed_private",
-    currentWork: "private",
-  };
-}
-
-function validate(draft: ProfileDraft) {
+function validate(draft: Mvp0Profile) {
   const errors: string[] = [];
   if (!draft.photoUrl.trim()) {
-    errors.push("顔写真が未入力です。画像をアップロードするかURLを入力してください。");
+    errors.push("顔写真が未入力です。画像をアップロードしてください。");
   }
   if (draft.photoUrl && !/^(https?:\/\/|data:image\/)/i.test(draft.photoUrl)) {
     errors.push("顔写真の形式が不正です。https URLまたは画像データURLを指定してください。");

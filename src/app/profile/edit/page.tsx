@@ -20,7 +20,7 @@ export default async function ProfileEditPage() {
           プロフィール編集
         </h2>
         <p className="mt-3 max-w-3xl text-slate-600">
-          公開プロフィールに表示される自己紹介、得意領域、公開キャリア情報を編集します。
+          自分の情報を整えながら、社員全体に公開する項目と非公開にする項目を管理します。
         </p>
       </div>
       <ProfileEditForm employee={employee} />

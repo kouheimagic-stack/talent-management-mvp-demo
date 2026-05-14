@@ -5,6 +5,7 @@ import { Eye, LockKeyhole, PenLine } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { readStoredPublicProfile, type ProfileFieldKey } from "@/lib/profile-storage";
 import type { EmployeeProfile, Viewer } from "@/types/talent";
 
 type PublicProfileDetailProps = {
@@ -12,59 +13,42 @@ type PublicProfileDetailProps = {
   viewer: Viewer;
 };
 
-type StoredProfile = {
-  photoUrl?: string;
-  selfIntroduction?: string;
-  careerHistories?: string;
-  qualifications?: string;
-  strengths?: string;
-  skillsToGrow?: string;
-  desiredCareerPublic?: string;
-  desiredCareerPrivate?: string;
-  mobility?: string;
-  preMeetingMemo?: string;
-  visibility?: Record<string, "public" | "private" | "fixed_private">;
-};
-
-const profileStoragePrefix = "profile-edit-v4-";
-
 export function PublicProfileDetail({ employee, viewer }: PublicProfileDetailProps) {
-  const profile = readStoredProfile(employee.id);
-  const visibility: Record<string, "public" | "private" | "fixed_private"> =
-    profile?.visibility ?? defaultVisibility();
+  const profile = readStoredPublicProfile(employee);
+  const visibility = profile.visibility;
   const rows = [
     {
       key: "selfIntroduction",
       label: "自己紹介",
-      value: profile?.selfIntroduction ?? `${employee.department}で${employee.position}を担当しています。`,
+      value: profile.selfIntroduction,
     },
     {
       key: "careerHistories",
       label: "社内経歴",
-      value: profile?.careerHistories ?? employee.careerHistories.map((history) => `${history.title}: ${history.summary}`).join("\n"),
+      value: profile.careerHistories,
     },
     {
       key: "qualifications",
       label: "保有資格",
-      value: profile?.qualifications ?? employee.certifications.map((certification) => certification.name).join("、"),
+      value: profile.qualifications,
     },
     {
       key: "strengths",
       label: "得意領域",
-      value: profile?.strengths ?? employee.strengths.join("、"),
+      value: profile.strengths,
     },
     {
       key: "skillsToGrow",
       label: "伸ばしたいスキル",
-      value: profile?.skillsToGrow ?? employee.careerPreference.skillsToDevelop.join("、"),
+      value: profile.skillsToGrow,
     },
     {
       key: "desiredCareerPublic",
       label: "希望キャリア 公開用コメント",
-      value: profile?.desiredCareerPublic ?? "",
+      value: profile.desiredCareerPublic,
     },
-  ].filter((row) => visibility[row.key] === "public" && row.value.trim());
-  const photoUrl = visibility.photo === "public" ? profile?.photoUrl || employee.photoUrl : employee.photoUrl;
+  ].filter((row) => visibility[row.key as ProfileFieldKey] === "public" && row.value.trim());
+  const photoUrl = visibility.photo === "public" ? profile.photoUrl || employee.photoUrl : employee.photoUrl;
 
   return (
     <div className="space-y-6">
@@ -125,31 +109,4 @@ export function PublicProfileDetail({ employee, viewer }: PublicProfileDetailPro
       )}
     </div>
   );
-}
-
-function readStoredProfile(employeeId: string): StoredProfile | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  const raw = window.localStorage.getItem(`${profileStoragePrefix}${employeeId}`);
-  if (!raw) {
-    return null;
-  }
-  try {
-    return JSON.parse(raw) as StoredProfile;
-  } catch {
-    return null;
-  }
-}
-
-function defaultVisibility(): Record<string, "public" | "private" | "fixed_private"> {
-  return {
-    photo: "public",
-    selfIntroduction: "public",
-    careerHistories: "public",
-    qualifications: "public",
-    strengths: "public",
-    skillsToGrow: "private",
-    desiredCareerPublic: "private",
-  };
 }
