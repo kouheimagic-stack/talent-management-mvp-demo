@@ -15,7 +15,8 @@ import type { EmployeeProfile } from "@/types/talent";
 export function useProfileDraft(employee: EmployeeProfile) {
   const [draft, setDraft] = useState<Mvp0Profile>(() => readProfileFromLocalStorage(employee));
   const [lastSaved, setLastSaved] = useState<Mvp0Profile>(() => readProfileFromLocalStorage(employee));
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState("");
 
   const hasUnsavedChanges = useMemo(
     () => JSON.stringify(draft) !== JSON.stringify(lastSaved),
@@ -38,16 +39,44 @@ export function useProfileDraft(employee: EmployeeProfile) {
     return () => window.removeEventListener("beforeunload", warnBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  useEffect(() => {
+    function warnBeforeNavigation(event: MouseEvent) {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      const target = event.target;
+      const link = target instanceof Element ? target.closest("a") : null;
+      if (!link || link.target === "_blank") {
+        return;
+      }
+
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("mailto:")) {
+        return;
+      }
+
+      if (!window.confirm("未保存の変更があります。このページを離れますか？")) {
+        event.preventDefault();
+      }
+    }
+
+    document.addEventListener("click", warnBeforeNavigation, true);
+    return () => document.removeEventListener("click", warnBeforeNavigation, true);
+  }, [hasUnsavedChanges]);
+
   function updateField<K extends keyof Omit<Mvp0Profile, "visibility" | "updatedAt">>(
     key: K,
     value: Mvp0Profile[K],
   ) {
     setSaveState("idle");
+    setSaveError("");
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
   function updateVisibility(key: ProfileFieldKey, value: ProfileVisibilityStatus) {
     setSaveState("idle");
+    setSaveError("");
     setDraft((current) => ({
       ...current,
       visibility: { ...current.visibility, [key]: value },
@@ -56,15 +85,26 @@ export function useProfileDraft(employee: EmployeeProfile) {
 
   async function save() {
     setSaveState("saving");
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-    const nextDraft = {
-      ...draft,
-      updatedAt: new Date().toISOString(),
-    };
-    writeProfileToLocalStorage(employee.id, nextDraft);
-    setDraft(nextDraft);
-    setLastSaved(nextDraft);
-    setSaveState("saved");
+    setSaveError("");
+
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 450));
+      const nextDraft = {
+        ...draft,
+        updatedAt: new Date().toISOString(),
+      };
+      writeProfileToLocalStorage(employee.id, nextDraft);
+      setDraft(nextDraft);
+      setLastSaved(nextDraft);
+      setSaveState("saved");
+    } catch (error) {
+      setSaveState("error");
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "保存に失敗しました。ブラウザの保存領域を確認してください。",
+      );
+    }
   }
 
   return {
@@ -74,6 +114,7 @@ export function useProfileDraft(employee: EmployeeProfile) {
     updateVisibility,
     save,
     saveState,
+    saveError,
     hasUnsavedChanges,
     completion,
     visibilitySummary,

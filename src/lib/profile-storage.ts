@@ -35,6 +35,13 @@ export const profileStorageVersion = 1;
 export const profileStorageNamespace = "talent-mvp0";
 export const legacyProfileStoragePrefix = "profile-edit-v4-";
 
+export const storageKeys = {
+  authSession: `${profileStorageNamespace}:auth:session`,
+  employee: (employeeId: string) => `${profileStorageNamespace}:employee:${employeeId}`,
+  profile: (employeeId: string) => `${profileStorageNamespace}:profile:${employeeId}`,
+  visibility: (employeeId: string) => `${profileStorageNamespace}:visibility:${employeeId}`,
+};
+
 export const publicProfileFieldKeys: ProfileFieldKey[] = [
   "photo",
   "selfIntroduction",
@@ -67,7 +74,7 @@ export const completionItems: Array<{
 ];
 
 export function getProfileStorageKey(employeeId: string) {
-  return `${profileStorageNamespace}:profile:${employeeId}`;
+  return storageKeys.profile(employeeId);
 }
 
 export function getDefaultVisibility(): Record<ProfileFieldKey, ProfileVisibilityStatus> {
@@ -133,7 +140,7 @@ export function readProfileFromLocalStorage(employee: EmployeeProfile): Mvp0Prof
   const currentRaw = window.localStorage.getItem(getProfileStorageKey(employee.id));
   if (currentRaw) {
     try {
-      return parseStoredProfilePayload(employee, JSON.parse(currentRaw));
+      return mergeStoredVisibility(employee.id, parseStoredProfilePayload(employee, JSON.parse(currentRaw)));
     } catch {
       return createDefaultProfile(employee);
     }
@@ -179,6 +186,7 @@ export function writeProfileToLocalStorage(employeeId: string, profile: Mvp0Prof
       updatedAt: profile.updatedAt,
     }),
   );
+  window.localStorage.setItem(storageKeys.visibility(employeeId), JSON.stringify(profile.visibility));
 }
 
 export function parseStoredProfilePayload(employee: EmployeeProfile, raw: unknown): Mvp0Profile {
@@ -207,13 +215,42 @@ export function readStoredPublicProfile(employee: EmployeeProfile): Mvp0Profile 
   const currentRaw = window.localStorage.getItem(getProfileStorageKey(employee.id));
   if (currentRaw) {
     try {
-      return parseStoredProfilePayload(employee, JSON.parse(currentRaw));
+      return mergeStoredVisibility(employee.id, parseStoredProfilePayload(employee, JSON.parse(currentRaw)));
     } catch {
       return createDefaultProfile(employee);
     }
   }
 
   return readProfileFromLocalStorage(employee);
+}
+
+function mergeStoredVisibility(employeeId: string, profile: Mvp0Profile): Mvp0Profile {
+  if (typeof window === "undefined") {
+    return profile;
+  }
+
+  const visibilityRaw = window.localStorage.getItem(storageKeys.visibility(employeeId));
+  if (!visibilityRaw) {
+    return profile;
+  }
+
+  try {
+    const storedVisibility = JSON.parse(visibilityRaw) as Partial<
+      Record<ProfileFieldKey, ProfileVisibilityStatus>
+    >;
+    return {
+      ...profile,
+      visibility: {
+        ...profile.visibility,
+        ...storedVisibility,
+        desiredCareerPrivate: "fixed_private",
+        mobility: "fixed_private",
+        preMeetingMemo: "fixed_private",
+      },
+    };
+  } catch {
+    return profile;
+  }
 }
 
 export function getCompletion(profile: Mvp0Profile) {

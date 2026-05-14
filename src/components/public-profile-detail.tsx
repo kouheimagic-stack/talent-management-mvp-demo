@@ -48,18 +48,24 @@ export function PublicProfileDetail({ employee, viewer }: PublicProfileDetailPro
       value: profile.desiredCareerPublic,
     },
   ].filter((row) => visibility[row.key as ProfileFieldKey] === "public" && row.value.trim());
-  const photoUrl = visibility.photo === "public" ? profile.photoUrl || employee.photoUrl : employee.photoUrl;
+  const photoUrl = visibility.photo === "public" ? profile.photoUrl || employee.photoUrl : "";
 
   return (
     <div className="space-y-6">
       <Card className="border-sky-100 bg-gradient-to-br from-white to-sky-50/60 shadow-none">
         <CardContent className="grid gap-6 pt-6 md:grid-cols-[160px_1fr]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photoUrl}
-            alt={`${employee.fullName}の顔写真`}
-            className="size-36 rounded-3xl object-cover ring-4 ring-white"
-          />
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={`${employee.fullName}の顔写真`}
+              className="size-36 rounded-3xl object-cover ring-4 ring-white"
+            />
+          ) : (
+            <div className="flex size-36 items-center justify-center rounded-3xl bg-slate-100 text-4xl font-bold text-slate-500 ring-4 ring-white">
+              {employee.fullName.slice(0, 1)}
+            </div>
+          )}
           <div>
             <Badge variant="blue" className="w-fit">
               <Eye size={13} />
@@ -70,7 +76,7 @@ export function PublicProfileDetail({ employee, viewer }: PublicProfileDetailPro
               {employee.department} / {employee.position}
             </p>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600">
-              本人が公開設定した項目だけを表示しています。非公開情報はこの画面には表示されません。
+              これは他社員から見える内容です。本人が公開設定した項目だけを表示しています。
             </p>
             {viewer.employeeId === employee.id ? (
               <Button asChild className="mt-5">

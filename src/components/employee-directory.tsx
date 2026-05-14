@@ -23,6 +23,7 @@ type EmployeeDirectoryProps = {
   department?: string;
   rating?: string;
   interview?: string;
+  specialty?: string;
   view: "cards" | "table";
 };
 
@@ -35,6 +36,7 @@ export function EmployeeDirectory({
   department,
   rating,
   interview,
+  specialty,
   view,
 }: EmployeeDirectoryProps) {
   const showPrivateSignals = role !== "employee";
@@ -43,6 +45,7 @@ export function EmployeeDirectory({
   const viewParams = new URLSearchParams({
     q: query ?? "",
     department: department ?? "all",
+    specialty: specialty ?? "",
   });
   if (!isPublicDirectory) {
     viewParams.set("rating", rating ?? "all");
@@ -52,8 +55,8 @@ export function EmployeeDirectory({
   return (
     <div className="space-y-5">
       <form
-        className={`grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 ${
-          isPublicDirectory ? "xl:grid-cols-[1fr_220px_auto]" : "xl:grid-cols-[1fr_200px_160px_180px_auto]"
+        className={`grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 ${
+          isPublicDirectory ? "xl:grid-cols-[1fr_220px_220px_auto]" : "xl:grid-cols-[1fr_200px_160px_180px_auto]"
         }`}
       >
         <input type="hidden" name="view" value={view} />
@@ -81,6 +84,20 @@ export function EmployeeDirectory({
             </option>
           ))}
         </select>
+        {isPublicDirectory ? (
+          <label className="relative">
+            <Search
+              size={18}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              name="specialty"
+              defaultValue={specialty}
+              placeholder="資格・得意領域で絞る"
+              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            />
+          </label>
+        ) : null}
         {!isPublicDirectory ? (
           <>
             <select
@@ -144,8 +161,8 @@ export function EmployeeDirectory({
 
       {employees.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-          <h3 className="text-lg font-bold text-[#0f2f57]">該当する社員がいません</h3>
-          <p className="mt-2 text-sm text-slate-500">検索条件または閲覧ロールを変更してください。</p>
+          <h3 className="text-lg font-bold text-[#0f2f57]">該当する公開プロフィールがありません</h3>
+          <p className="mt-2 text-sm text-slate-500">検索語、部署、資格・得意領域の条件を少し広げてください。</p>
         </div>
       ) : effectiveView === "cards" ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

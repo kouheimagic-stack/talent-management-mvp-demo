@@ -8,8 +8,10 @@ export async function listEmployees(
   department?: string,
   rating?: string,
   interview?: string,
+  specialty?: string,
 ) {
   const normalizedQuery = query?.trim().toLowerCase();
+  const normalizedSpecialty = specialty?.trim().toLowerCase();
 
   return mockEmployees
     .filter((employee) => canViewEmployee(employee, viewer))
@@ -46,10 +48,8 @@ export async function listEmployees(
       const haystack = [
         employee.fullName,
         employee.fullNameKana,
-        employee.email,
         employee.department,
         employee.position,
-        employee.aiSummary,
         ...employee.skills,
         ...employee.strengths,
         ...employee.certifications.map((certification) => certification.name),
@@ -59,6 +59,20 @@ export async function listEmployees(
         .toLowerCase();
 
       return haystack.includes(normalizedQuery);
+    })
+    .filter((employee) => {
+      if (!normalizedSpecialty) {
+        return true;
+      }
+
+      const haystack = [
+        ...employee.strengths,
+        ...employee.certifications.map((certification) => certification.name),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSpecialty);
     });
 }
 

@@ -2,6 +2,7 @@
 
 import type { ChangeEvent, RefObject } from "react";
 import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   Camera,
@@ -218,6 +219,7 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
     updateVisibility,
     save,
     saveState,
+    saveError,
     hasUnsavedChanges,
     completion,
     visibilitySummary,
@@ -361,6 +363,7 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
           {errors.length > 0 ? <ErrorPanel errors={errors} /> : null}
           <SavePanel
             saveState={saveState}
+            saveError={saveError}
             hasUnsavedChanges={hasUnsavedChanges}
             onSave={handleSave}
           />
@@ -630,17 +633,22 @@ function PublicPreview({ employee, draft }: { employee: EmployeeProfile; draft: 
         <div>
           <p className="text-sm font-semibold text-sky-600">Live preview</p>
           <h3 className="mt-1 text-xl font-semibold text-[#0f2f57]">他社員からの見え方</h3>
+          <p className="mt-1 text-sm text-slate-500">これは他社員から見える内容です。</p>
         </div>
         <Badge variant="blue">リアルタイム</Badge>
       </div>
       <div className="mt-5 rounded-3xl bg-slate-50 p-4">
         <div className="flex gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={draft.visibility.photo === "public" ? draft.photoUrl || employee.photoUrl : employee.photoUrl}
-            alt="公開プロフィールの顔写真"
-            className="size-20 rounded-2xl object-cover"
-          />
+          {draft.visibility.photo === "public" && (draft.photoUrl || employee.photoUrl) ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={draft.photoUrl || employee.photoUrl}
+              alt="公開プロフィールの顔写真"
+              className="size-20 rounded-2xl object-cover"
+            />
+          ) : (
+            <DefaultAvatar name={employee.fullName} className="size-20 rounded-2xl" />
+          )}
           <div className="min-w-0">
             <p className="font-bold text-[#0f2f57]">{employee.fullName}</p>
             <p className="mt-1 text-sm text-slate-500">
@@ -669,6 +677,12 @@ function PublicPreview({ employee, draft }: { employee: EmployeeProfile; draft: 
           </div>
         )}
       </div>
+      <Button asChild variant="secondary" className="mt-4 w-full">
+        <Link href={`/employees/${employee.id}`}>
+          <Eye size={17} />
+          実際の公開プロフィールを開く
+        </Link>
+      </Button>
     </section>
   );
 }
@@ -731,10 +745,12 @@ function ErrorPanel({ errors }: { errors: string[] }) {
 
 function SavePanel({
   saveState,
+  saveError,
   hasUnsavedChanges,
   onSave,
 }: {
-  saveState: "idle" | "saving" | "saved";
+  saveState: "idle" | "saving" | "saved" | "error";
+  saveError: string;
   hasUnsavedChanges: boolean;
   onSave: () => void;
 }) {
@@ -750,6 +766,11 @@ function SavePanel({
           <CheckCircle2 size={16} />
           保存しました
         </p>
+      ) : saveState === "error" ? (
+        <p className="mb-3 flex items-start gap-2 text-sm font-semibold text-rose-700">
+          <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          {saveError || "保存に失敗しました。"}
+        </p>
       ) : (
         <p className="mb-3 text-sm text-slate-500">変更後は保存してください。</p>
       )}
@@ -758,6 +779,14 @@ function SavePanel({
         {saveState === "saving" ? "保存中..." : "保存する"}
       </Button>
     </section>
+  );
+}
+
+function DefaultAvatar({ name, className }: { name: string; className?: string }) {
+  return (
+    <div className={`flex shrink-0 items-center justify-center bg-slate-100 text-xl font-bold text-slate-500 ${className ?? ""}`}>
+      {name.slice(0, 1)}
+    </div>
   );
 }
 

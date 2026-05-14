@@ -11,6 +11,7 @@ type EmployeesPageProps = {
     department?: string;
     rating?: string;
     interview?: string;
+    specialty?: string;
     view?: string;
   }>;
 };
@@ -20,7 +21,7 @@ export default async function EmployeesPage({ searchParams }: EmployeesPageProps
   const viewer = await getCurrentViewer();
   const view = params.view === "table" ? "table" : "cards";
   const [employees, departments] = await Promise.all([
-    listEmployees(viewer, params.q, params.department, params.rating, params.interview),
+    listEmployees(viewer, params.q, params.department, params.rating, params.interview, params.specialty),
     getDepartments(viewer),
   ]);
 
@@ -64,6 +65,7 @@ export default async function EmployeesPage({ searchParams }: EmployeesPageProps
         department={params.department}
         rating={params.rating}
         interview={params.interview}
+        specialty={params.specialty}
         view={view}
       />
     </AppShell>
