@@ -172,7 +172,7 @@ const fieldSections: Array<{
   {
     id: "private",
     title: "非公開メモ",
-    description: "公開プロフィールには出さない本人用メモです。面談機能はMVP 1以降で扱います。",
+    description: "公開プロフィールには出さない本人用メモです。自分の考えを整理するために使います。",
     fields: [
       {
         key: "mobility",
@@ -189,7 +189,7 @@ const fieldSections: Array<{
         visibilityKey: "preMeetingMemo",
         title: "面談前メモ",
         eyebrow: "Fixed private",
-        description: "次回の面談で相談したいことを残します。非公開固定です。",
+        description: "次に相談したいことを残します。非公開固定です。",
         placeholder: "例: 今の業務負荷、今後挑戦したい仕事、キャリアの不安について相談したい。",
         rows: 4,
         fixedPrivate: true,
