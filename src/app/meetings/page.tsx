@@ -2,15 +2,15 @@ import { AppShell } from "@/components/app-shell";
 import { DevelopmentPlaceholder } from "@/components/development-placeholder";
 import { getCurrentViewer, requireRole } from "@/lib/auth";
 
-export default async function ActionsPage() {
+export default async function MeetingsPage() {
   const viewer = await getCurrentViewer();
   requireRole(viewer, ["manager", "hr", "admin"]);
 
   return (
     <AppShell viewer={viewer}>
       <DevelopmentPlaceholder
-        title="アクション管理"
-        description="面談後のネクストアクション管理、期限管理、次回振り返りはMVP 1で実装します。"
+        title="面談支援"
+        description="面談準備、面談記録3ステップ、AI要約、アクション候補生成はMVP 1で実装します。"
         plannedFor="MVP 1"
         role={viewer.role}
       />

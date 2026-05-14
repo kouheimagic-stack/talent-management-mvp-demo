@@ -2,16 +2,16 @@ import { AppShell } from "@/components/app-shell";
 import { DevelopmentPlaceholder } from "@/components/development-placeholder";
 import { getCurrentViewer, requireRole } from "@/lib/auth";
 
-export default async function ActionsPage() {
+export default async function OrganizationAdminPage() {
   const viewer = await getCurrentViewer();
-  requireRole(viewer, ["manager", "hr", "admin"]);
+  requireRole(viewer, ["admin"]);
 
   return (
     <AppShell viewer={viewer}>
       <DevelopmentPlaceholder
-        title="アクション管理"
-        description="面談後のネクストアクション管理、期限管理、次回振り返りはMVP 1で実装します。"
-        plannedFor="MVP 1"
+        title="組織管理"
+        description="部署、チーム、上司・部下関係の管理はMVP 2で実装します。"
+        plannedFor="MVP 2"
         role={viewer.role}
       />
     </AppShell>

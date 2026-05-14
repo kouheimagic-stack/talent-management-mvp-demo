@@ -1,14 +1,18 @@
 import {
   BrainCircuit,
+  Building2,
+  ClipboardList,
   LogOut,
-  LayoutDashboard,
+  Shield,
   ShieldCheck,
   UserRoundPen,
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import type { Viewer } from "@/types/talent";
 import { roleLabels } from "@/lib/permissions";
+import { getRoleHomePath } from "@/lib/auth";
 
 type AppShellProps = {
   viewer: Viewer;
@@ -16,26 +20,14 @@ type AppShellProps = {
 };
 
 export function AppShell({ viewer, children }: AppShellProps) {
-  const nav = [
-    {
-      href: "/me",
-      label: "マイページ",
-      icon: UserRoundPen,
-    },
-    { href: "/profile/edit", label: "プロフィール編集", icon: UserRoundPen },
-    {
-      href: "/employees",
-      label: "社員公開プロフィール一覧",
-      icon: UsersRound,
-    },
-  ].filter(Boolean) as Array<{ href: string; label: string; icon: typeof LayoutDashboard }>;
+  const nav = getNavigation(viewer);
 
   return (
     <div className="min-h-screen bg-[#fbfdff] text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
-            <Link href="/me" className="flex items-center gap-3">
+            <Link href={getRoleHomePath(viewer.role)} className="flex items-center gap-3">
               <div className="flex size-11 items-center justify-center rounded-xl bg-[#0f2f57] text-white shadow-sm">
                 <BrainCircuit size={22} />
               </div>
@@ -89,4 +81,50 @@ export function AppShell({ viewer, children }: AppShellProps) {
       </footer>
     </div>
   );
+}
+
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+};
+
+function getNavigation(viewer: Viewer): NavItem[] {
+  const mvp0Nav: NavItem[] = [
+    { href: "/me", label: "マイページ", icon: UserRoundPen },
+    { href: "/profile/edit", label: "プロフィール編集", icon: UserRoundPen },
+    { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
+  ];
+
+  if (viewer.role === "employee") {
+    return mvp0Nav;
+  }
+
+  if (viewer.role === "manager") {
+    return [
+      { href: "/manager", label: "上司トップ（開発中）", icon: ClipboardList },
+      { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
+      { href: "/profile/edit", label: "自分のプロフィール編集", icon: UserRoundPen },
+      { href: "/meetings", label: "面談（開発中）", icon: ClipboardList },
+      { href: "/actions", label: "アクション（開発中）", icon: ClipboardList },
+    ];
+  }
+
+  if (viewer.role === "hr") {
+    return [
+      { href: "/hr", label: "人事トップ（開発中）", icon: Building2 },
+      { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
+      { href: "/profile/edit", label: "自分のプロフィール編集", icon: UserRoundPen },
+      { href: "/admin/users", label: "ユーザー管理（開発中）", icon: Shield },
+    ];
+  }
+
+  return [
+    { href: "/admin", label: "管理者トップ（開発中）", icon: Shield },
+    { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
+    { href: "/profile/edit", label: "自分のプロフィール編集", icon: UserRoundPen },
+    { href: "/admin/users", label: "ユーザー管理（開発中）", icon: Shield },
+    { href: "/admin/org", label: "組織管理（開発中）", icon: Building2 },
+    { href: "/admin/csv", label: "CSV管理（開発中）", icon: ClipboardList },
+  ];
 }

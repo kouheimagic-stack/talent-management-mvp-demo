@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <BrainCircuit size={24} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-sky-600">AI Meeting Copilot</p>
+              <p className="text-sm font-semibold text-sky-600">Career Profile</p>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0f2f57]">
                 社員公開プロフィール
               </h1>
@@ -76,7 +76,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             ) : null}
 
             <form action="/api/auth/login" method="post" className="space-y-4">
-              <input type="hidden" name="returnTo" value="/me" />
               <label className="block text-sm font-semibold text-slate-700">
                 メールアドレス
                 <div className="relative mt-2">
