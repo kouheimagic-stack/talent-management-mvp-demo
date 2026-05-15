@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import Link from "next/link";
-import { Eye, Image as ImageIcon, LockKeyhole, PenLine, UserRoundPen } from "lucide-react";
+import { ArrowRight, Eye, Image as ImageIcon, LockKeyhole, PenLine, Search, UserRoundPen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,8 @@ export function EmployeeCareerHome({ employee, viewer }: EmployeeCareerHomeProps
           </Badge>
           <CardTitle className="text-3xl">マイページ</CardTitle>
           <CardDescription>
-            自分のプロフィール完成度と公開状態を確認し、必要な項目を更新します。
+            このページでは、自分のプロフィール情報を整え、社内に公開する情報を確認できます。
+            公開した情報は社員公開プロフィールに表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-[220px_1fr]">
@@ -93,19 +94,43 @@ export function EmployeeCareerHome({ employee, viewer }: EmployeeCareerHomeProps
               <Button asChild>
                 <Link href="/profile/edit">
                   <UserRoundPen size={17} />
-                  プロフィール編集
+                  プロフィールを編集する
                 </Link>
               </Button>
               <Button asChild variant="secondary">
                 <Link href={`/employees/${employee.id}`}>
                   <ImageIcon size={17} />
-                  公開プロフィールプレビュー
+                  公開プロフィールを確認する
                 </Link>
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <HomeAction
+          href="/profile/edit"
+          icon={<UserRoundPen size={20} />}
+          title="プロフィールを整える"
+          description="自己紹介、得意領域、資格などを入力し、公開する項目を選べます。"
+          cta="編集する"
+        />
+        <HomeAction
+          href={`/employees/${employee.id}`}
+          icon={<Eye size={20} />}
+          title="公開プロフィールを見る"
+          description="他社員から見える表示を確認できます。非公開の情報は表示されません。"
+          cta="確認する"
+        />
+        <HomeAction
+          href="/employees"
+          icon={<Search size={20} />}
+          title="社員を探す"
+          description="公開プロフィールから、得意領域や資格を持つ社員を探せます。"
+          cta="探す"
+        />
+      </div>
     </div>
   );
 }
@@ -117,5 +142,36 @@ function StatusCard({ icon, label, value }: { icon: ReactNode; label: string; va
       <p className="mt-3 text-sm text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-[#0f2f57]">{value}</p>
     </div>
+  );
+}
+
+function HomeAction({
+  href,
+  icon,
+  title,
+  description,
+  cta,
+}: {
+  href: string;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  cta: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md"
+    >
+      <div className="flex size-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
+        {icon}
+      </div>
+      <h2 className="mt-4 text-lg font-bold text-[#0f2f57]">{title}</h2>
+      <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sky-700">
+        {cta}
+        <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   );
 }

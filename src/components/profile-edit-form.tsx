@@ -1,6 +1,6 @@
 "use client";
 
-import type { ChangeEvent, RefObject } from "react";
+import type { ChangeEvent, ReactNode, RefObject } from "react";
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -61,7 +61,7 @@ const fieldSections: Array<{
         key: "selfIntroduction",
         visibilityKey: "selfIntroduction",
         title: "自己紹介",
-        eyebrow: "Public profile",
+        eyebrow: "公開プロフィールの中心",
         description: "あなたの役割、得意なこと、周囲に知ってほしいことを短くまとめます。",
         placeholder:
           "例: プロダクト開発部で決済領域の改善を担当しています。ユーザー課題の整理や関係者との合意形成が得意です。",
@@ -73,13 +73,13 @@ const fieldSections: Array<{
   {
     id: "work",
     title: "現在の仕事内容",
-    description: "いま何を担当しているかを整理します。MVP 0では自分用の非公開情報として扱います。",
+    description: "いま何を担当しているかを整理します。自分の役割を言葉にしておくための項目です。",
     fields: [
       {
         key: "currentWork",
         visibilityKey: "currentWork",
         title: "現在の仕事内容",
-        eyebrow: "Private note",
+        eyebrow: "自分の情報",
         description: "担当業務、責任範囲、最近取り組んでいるテーマを書きます。",
         placeholder:
           "例: 決済導線の改善、開発優先度の整理、CSから上がる問い合わせの分析を担当しています。",
@@ -145,14 +145,14 @@ const fieldSections: Array<{
   {
     id: "future",
     title: "将来やりたいこと",
-    description: "公開できるキャリア意向と、本人だけの非公開メモを分けて管理します。",
+    description: "公開できるキャリア意向と、本人だけの非公開メモを分けて書けます。",
     fields: [
       {
         key: "desiredCareerPublic",
         visibilityKey: "desiredCareerPublic",
         title: "希望キャリア 公開用コメント",
-        eyebrow: "Visible career note",
-        description: "他社員に見えてもよい将来像です。協業や相談につながる粒度で書きます。",
+        eyebrow: "公開できる将来像",
+        description: "他社員にも見せてよい将来像を記入してください。協業や相談につながる粒度がおすすめです。",
         placeholder: "例: 将来的にはプロダクト戦略や新規事業の立ち上げに挑戦したいです。",
         rows: 4,
         toggleable: true,
@@ -161,8 +161,8 @@ const fieldSections: Array<{
         key: "desiredCareerPrivate",
         visibilityKey: "desiredCareerPrivate",
         title: "希望キャリア 非公開コメント",
-        eyebrow: "Private career note",
-        description: "まだ公開したくない悩みや、整理途中の希望を書きます。",
+        eyebrow: "非公開の本音メモ",
+        description: "上司や人事と相談したい本音のキャリア希望を記入してください。社員全体には公開されません。",
         placeholder: "例: 現部署での成長機会に不安があり、異動も含めて相談したい。",
         rows: 4,
         fixedPrivate: true,
@@ -172,14 +172,14 @@ const fieldSections: Array<{
   {
     id: "private",
     title: "非公開メモ",
-    description: "公開プロフィールには出さない本人用メモです。自分の考えを整理するために使います。",
+    description: "社員全体には公開しない情報です。自分の考えや相談したいことを整理するために使います。",
     fields: [
       {
         key: "mobility",
         visibilityKey: "mobility",
         title: "異動希望",
-        eyebrow: "Fixed private",
-        description: "異動や勤務地に関する希望です。非公開固定です。",
+        eyebrow: "非公開固定",
+        description: "この情報はセンシティブなため、社員全体には公開されません。",
         placeholder: "例: 半年以内にデータ領域への異動を相談したい。",
         rows: 3,
         fixedPrivate: true,
@@ -188,8 +188,8 @@ const fieldSections: Array<{
         key: "preMeetingMemo",
         visibilityKey: "preMeetingMemo",
         title: "面談前メモ",
-        eyebrow: "Fixed private",
-        description: "次に相談したいことを残します。非公開固定です。",
+        eyebrow: "非公開固定",
+        description: "上司との面談準備に使う情報です。社員全体には公開されません。",
         placeholder: "例: 今の業務負荷、今後挑戦したい仕事、キャリアの不安について相談したい。",
         rows: 4,
         fixedPrivate: true,
@@ -311,6 +311,26 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
             <p className="mt-3 max-w-2xl leading-7 text-slate-600">
               公開したい情報だけを選びながら、他社員に伝わるプロフィールを整えます。非公開固定の項目は公開プロフィールには表示されません。
             </p>
+            <div className="mt-5 grid gap-2 text-sm sm:grid-cols-3">
+              <GuideLabel
+                icon={<Eye size={15} />}
+                title="公開中"
+                description="社員公開プロフィールに表示されます"
+                tone="public"
+              />
+              <GuideLabel
+                icon={<EyeOff size={15} />}
+                title="非公開"
+                description="自分のみが確認できます"
+                tone="private"
+              />
+              <GuideLabel
+                icon={<LockKeyhole size={15} />}
+                title="非公開固定"
+                description="社員全体には公開されません"
+                tone="fixed"
+              />
+            </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <Metric label="完成度" value={`${completion.percentage}%`} tone="blue" />
               <Metric label="公開中" value={`${visibilitySummary.publicCount}項目`} tone="green" />
@@ -462,6 +482,35 @@ function Metric({ label, value, tone }: { label: string; value: string; tone: "b
     <div className={`rounded-2xl border p-4 ${toneClass}`}>
       <p className="text-xs font-semibold">{label}</p>
       <p className="mt-1 text-2xl font-bold">{value}</p>
+    </div>
+  );
+}
+
+function GuideLabel({
+  icon,
+  title,
+  description,
+  tone,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  tone: "public" | "private" | "fixed";
+}) {
+  const toneClass =
+    tone === "public"
+      ? "border-emerald-100 bg-emerald-50 text-emerald-900"
+      : tone === "fixed"
+        ? "border-amber-100 bg-amber-50 text-amber-900"
+        : "border-slate-200 bg-white text-slate-700";
+
+  return (
+    <div className={`rounded-2xl border p-3 ${toneClass}`}>
+      <p className="flex items-center gap-2 font-semibold">
+        {icon}
+        {title}
+      </p>
+      <p className="mt-1 text-xs leading-5 opacity-80">{description}</p>
     </div>
   );
 }
@@ -633,7 +682,9 @@ function PublicPreview({ employee, draft }: { employee: EmployeeProfile; draft: 
         <div>
           <p className="text-sm font-semibold text-sky-600">Live preview</p>
           <h3 className="mt-1 text-xl font-semibold text-[#0f2f57]">他社員からの見え方</h3>
-          <p className="mt-1 text-sm text-slate-500">これは他社員から見える内容です。</p>
+          <p className="mt-1 text-sm text-slate-500">
+            プレビュー：他社員から見える表示を確認できます。
+          </p>
         </div>
         <Badge variant="blue">リアルタイム</Badge>
       </div>

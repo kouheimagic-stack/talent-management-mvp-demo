@@ -129,11 +129,11 @@ export function EmployeeDirectory({
       </form>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500">
           {employees.length}名を表示中。
           {showPrivateSignals
             ? "カードでは人材像、テーブルでは比較を優先します。"
-            : "公開中の自己紹介、得意領域、資格、社内経歴だけを表示します。"}
+            : "社員が公開している自己紹介、得意領域、資格、将来やりたいことだけを表示します。"}
         </p>
         {!isPublicDirectory ? (
           <div className="inline-flex w-fit rounded-lg border border-slate-200 bg-white p-1">
