@@ -27,13 +27,13 @@ export default async function EmployeesPage({ searchParams }: EmployeesPageProps
 
   return (
     <AppShell viewer={viewer}>
-      <div className="mb-8 grid gap-5 lg:grid-cols-[1.5fr_1fr] lg:items-end">
+      <div className="mb-6 grid gap-4 md:mb-8 lg:grid-cols-[1.5fr_1fr] lg:items-end">
         <div>
           <p className="text-sm font-semibold text-sky-600">People directory</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0f2f57]">
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0f2f57] md:text-3xl">
             社員公開プロフィール一覧
           </h2>
-          <p className="mt-3 max-w-3xl text-slate-600">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 md:mt-3 md:text-base">
             社内の人を知り、得意領域、資格、キャリアの参考になる公開情報を探します。非公開情報は表示されません。
           </p>
         </div>

@@ -390,7 +390,7 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
         </aside>
       </div>
 
-      <div className="sticky bottom-3 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur md:hidden">
+      <div className="sticky bottom-24 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur md:hidden">
         <Button type="button" onClick={handleSave} disabled={saveState === "saving"} className="w-full">
           <Save size={17} />
           {saveState === "saving" ? "保存中..." : "保存する"}

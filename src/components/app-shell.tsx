@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import type { Viewer } from "@/types/talent";
 import { roleLabels } from "@/lib/permissions";
 import { getRoleHomePath } from "@/lib/auth";
@@ -25,20 +26,20 @@ export function AppShell({ viewer, children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-[#fbfdff] text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:flex-col md:items-stretch md:gap-4 md:px-5 md:py-4 lg:flex-row lg:items-center lg:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-3 md:flex-col md:items-stretch md:gap-4 lg:flex-row lg:items-center lg:gap-8">
             <Link href={getRoleHomePath(viewer.role)} className="flex items-center gap-3">
-              <div className="flex size-11 items-center justify-center rounded-xl bg-[#0f2f57] text-white shadow-sm">
-                <BrainCircuit size={22} />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0f2f57] text-white shadow-sm md:size-11">
+                <BrainCircuit size={21} />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-sky-600">Career Profile</p>
-                <h1 className="text-xl font-bold tracking-tight text-[#0f2f57]">
+              <div className="min-w-0">
+                <p className="hidden text-sm font-semibold text-sky-600 sm:block">Career Profile</p>
+                <h1 className="truncate text-base font-bold tracking-tight text-[#0f2f57] sm:text-xl">
                   社員公開プロフィール
                 </h1>
               </div>
             </Link>
-            <nav className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
+            <nav className="hidden flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 md:flex">
               {nav.map((item) => {
                 const Icon = item.icon;
 
@@ -55,8 +56,8 @@ export function AppShell({ viewer, children }: AppShellProps) {
               })}
             </nav>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+          <div className="flex shrink-0 items-center gap-2 md:gap-3">
+            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm md:flex">
               <ShieldCheck size={18} className="text-sky-600" />
               <span className="text-slate-500">閲覧者</span>
               <span className="font-semibold text-[#0f2f57]">
@@ -64,21 +65,23 @@ export function AppShell({ viewer, children }: AppShellProps) {
               </span>
             </div>
             <form action="/api/auth/logout" method="post">
-              <button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+              <button className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                 <LogOut size={16} />
-                ログアウト
+                <span className="hidden sm:inline">ログアウト</span>
+                <span className="sr-only sm:hidden">ログアウト</span>
               </button>
             </form>
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-7xl px-5 py-8 lg:px-8">{children}</main>
-      <footer className="border-t border-slate-200 bg-slate-50">
+      <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 md:px-5 md:py-8 lg:px-8">{children}</main>
+      <footer className="hidden border-t border-slate-200 bg-slate-50 md:block">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between lg:px-8">
           <span>現在はlocalStorageモックで保存しています。将来Supabase Auth / Storage / DBへ移行する前提です。</span>
           <span className="text-[#0f2f57]">MVP 0: 社員情報・公開プロフィール基盤</span>
         </div>
       </footer>
+      <MobileTabBar viewer={viewer} />
     </div>
   );
 }
