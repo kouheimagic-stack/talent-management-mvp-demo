@@ -204,9 +204,15 @@ export type ChatMessage = {
 
 export type Viewer = {
   userId: string;
+  authUserId?: string;
   role: ViewerRole;
   employeeId: string;
   email: string;
   name: string;
+  department?: string;
+  team?: string | null;
+  position?: string | null;
+  grade?: string | null;
+  accountStatus?: "active" | "suspended";
   permittedSensitiveEmployeeIds: string[];
 };

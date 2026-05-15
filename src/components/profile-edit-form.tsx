@@ -289,9 +289,9 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-[2rem] border border-sky-100 bg-gradient-to-br from-white via-white to-sky-50 p-5 shadow-sm sm:p-7">
-        <div className="grid gap-7 lg:grid-cols-[260px_1fr] lg:items-center">
+    <div className="space-y-6 md:space-y-8">
+      <section className="rounded-[1.5rem] border border-sky-100 bg-gradient-to-br from-white via-white to-sky-50 p-4 shadow-sm sm:rounded-[2rem] sm:p-7">
+        <div className="grid gap-5 lg:grid-cols-[260px_1fr] lg:items-center">
           <PhotoPanel
             employee={employee}
             draft={draft}
@@ -305,10 +305,10 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
               <Sparkles size={13} />
               プロフィールを育てる
             </Badge>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#0f2f57]">
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[#0f2f57] md:mt-4 md:text-3xl">
               {employee.fullName}さんの社内プロフィール
             </h2>
-            <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 md:mt-3 md:text-base md:leading-7">
               公開したい情報だけを選びながら、他社員に伝わるプロフィールを整えます。非公開固定の項目は公開プロフィールには表示されません。
             </p>
             <div className="mt-5 grid gap-2 text-sm sm:grid-cols-3">
@@ -350,16 +350,16 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
         </div>
       </section>
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
-        <main className="space-y-8">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
+        <main className="space-y-6 md:space-y-8">
           <CompletionGuide completion={completion} />
 
           {fieldSections.map((section) => (
-            <section key={section.id} className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-              <div className="mb-6 max-w-2xl">
+            <section key={section.id} className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-7">
+              <div className="mb-5 max-w-2xl sm:mb-6">
                 <p className="text-sm font-semibold text-sky-600">{section.title}</p>
-                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-[#0f2f57]">{section.title}</h3>
-                <p className="mt-2 leading-7 text-slate-600">{section.description}</p>
+                <h3 className="mt-1 text-xl font-semibold tracking-tight text-[#0f2f57] md:mt-2 md:text-2xl">{section.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600 md:text-base md:leading-7">{section.description}</p>
               </div>
               <div className="space-y-5">
                 {section.fields.map((field) => (
@@ -436,13 +436,13 @@ function PhotoPanel({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5">
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-3xl sm:p-5">
       <div className="relative mx-auto w-fit">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={draft.photoUrl || employee.photoUrl}
           alt={`${employee.fullName}の顔写真プレビュー`}
-          className="size-40 rounded-[1.75rem] border border-slate-200 object-cover ring-4 ring-sky-50"
+          className="size-36 rounded-[1.5rem] border border-slate-200 object-cover ring-4 ring-sky-50 sm:size-40 sm:rounded-[1.75rem]"
         />
         <div className="absolute -right-2 -top-2">
           <VisibilityBadge visibility={draft.visibility.photo} />
@@ -524,11 +524,11 @@ function CompletionGuide({
   };
 }) {
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+    <section className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-sky-600">Completion guide</p>
-          <h3 className="mt-2 text-2xl font-semibold text-[#0f2f57]">完成度を上げるために</h3>
+          <h3 className="mt-2 text-xl font-semibold text-[#0f2f57] md:text-2xl">完成度を上げるために</h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             未入力の項目を埋めると、社内プロフィールとして伝わりやすくなります。
           </p>
@@ -574,7 +574,7 @@ function ProfileField({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+    <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/60 p-4 sm:rounded-3xl sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-wide text-sky-600">{field.eyebrow}</p>

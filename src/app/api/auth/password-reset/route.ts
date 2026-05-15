@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
-import { findUserByEmail } from "@/lib/permissions";
+import { createSupabaseServerClient, SupabaseConfigError } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const email = String(formData.get("email") ?? "");
-  const user = findUserByEmail(email);
-  const status = user ? "sent" : "not_found";
+  const email = String(formData.get("email") ?? "").trim();
 
-  return NextResponse.redirect(
-    new URL(`/login?reset=${status}&email=${encodeURIComponent(email)}`, request.url),
-  );
+  try {
+    const supabase = createSupabaseServerClient();
+    await supabase.auth.resetPasswordForEmail(email);
+    return NextResponse.redirect(
+      new URL(`/login?reset=sent&email=${encodeURIComponent(email)}`, request.url),
+    );
+  } catch (error) {
+    const code = error instanceof SupabaseConfigError ? "supabase_config" : "db_connection";
+    return NextResponse.redirect(
+      new URL(`/login?error=${code}&email=${encodeURIComponent(email)}`, request.url),
+    );
+  }
 }

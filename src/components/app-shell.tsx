@@ -1,9 +1,6 @@
 import {
   BrainCircuit,
-  Building2,
-  ClipboardList,
   LogOut,
-  Shield,
   ShieldCheck,
   UserRoundPen,
   UsersRound,
@@ -21,7 +18,7 @@ type AppShellProps = {
 };
 
 export function AppShell({ viewer, children }: AppShellProps) {
-  const nav = getNavigation(viewer);
+  const nav = getNavigation();
 
   return (
     <div className="min-h-screen bg-[#fbfdff] text-slate-900">
@@ -92,42 +89,12 @@ type NavItem = {
   icon: LucideIcon;
 };
 
-function getNavigation(viewer: Viewer): NavItem[] {
+function getNavigation(): NavItem[] {
   const mvp0Nav: NavItem[] = [
     { href: "/me", label: "マイページ", icon: UserRoundPen },
     { href: "/profile/edit", label: "プロフィール編集", icon: UserRoundPen },
-    { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
+    { href: "/employees", label: "社員を探す", icon: UsersRound },
   ];
 
-  if (viewer.role === "employee") {
-    return mvp0Nav;
-  }
-
-  if (viewer.role === "manager") {
-    return [
-      { href: "/manager", label: "上司トップ（開発中）", icon: ClipboardList },
-      { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
-      { href: "/profile/edit", label: "自分のプロフィール編集", icon: UserRoundPen },
-      { href: "/meetings", label: "面談（開発中）", icon: ClipboardList },
-      { href: "/actions", label: "アクション（開発中）", icon: ClipboardList },
-    ];
-  }
-
-  if (viewer.role === "hr") {
-    return [
-      { href: "/hr", label: "人事トップ（開発中）", icon: Building2 },
-      { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
-      { href: "/profile/edit", label: "自分のプロフィール編集", icon: UserRoundPen },
-      { href: "/admin/users", label: "ユーザー管理（開発中）", icon: Shield },
-    ];
-  }
-
-  return [
-    { href: "/admin", label: "管理者トップ（開発中）", icon: Shield },
-    { href: "/employees", label: "社員公開プロフィール一覧", icon: UsersRound },
-    { href: "/profile/edit", label: "自分のプロフィール編集", icon: UserRoundPen },
-    { href: "/admin/users", label: "ユーザー管理（開発中）", icon: Shield },
-    { href: "/admin/org", label: "組織管理（開発中）", icon: Building2 },
-    { href: "/admin/csv", label: "CSV管理（開発中）", icon: ClipboardList },
-  ];
+  return mvp0Nav;
 }
