@@ -43,7 +43,7 @@ export function EmployeeCareerHome({ employee, viewer }: EmployeeCareerHomeProps
           <CardTitle className="text-3xl">マイページ</CardTitle>
           <CardDescription>
             このページでは、自分のプロフィール情報を整え、社内に公開する情報を確認できます。
-            公開した情報は社員公開プロフィールに表示されます。
+            公開した情報は公開プロフィールに表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-[220px_1fr]">

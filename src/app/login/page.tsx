@@ -27,17 +27,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <BrainCircuit size={24} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-sky-600">Career Profile</p>
+              <p className="text-sm font-semibold text-sky-600">Talent Profile</p>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0f2f57]">
-                社員公開プロフィール
+                キャリアプロフィール
               </h1>
             </div>
           </div>
           <h2 className="mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-[#0f2f57] sm:mt-10 sm:text-5xl">
-            自分の情報を安心して整え、公開範囲を自分で決める。
+            自分のプロフィールを整え、社内での見え方を選べる。
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 sm:mt-6 sm:text-base sm:leading-8">
-            Supabase Authのメールアドレスとパスワードでログインします。MVP 0では、自分のプロフィールと公開状態を確認できます。
+            会社のメールアドレスでログインして、自分のプロフィールと公開状態を確認できます。
           </p>
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-4 text-sm text-slate-600 shadow-sm backdrop-blur sm:mt-8">
             <p className="font-semibold text-[#0f2f57]">デモ用ログイン</p>
@@ -56,8 +56,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <CardContent className="space-y-5">
             {!configured ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-                Supabase環境変数が未設定です。`.env.local` に
-                `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定してください。
+                Supabase環境変数が未設定です。`.env.local` の
+                `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` に値を設定してください。
+                設定済みなのに表示される場合は、開発サーバーを再起動してください。
               </div>
             ) : null}
             {params.error ? (

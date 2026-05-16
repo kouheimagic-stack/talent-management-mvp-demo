@@ -315,7 +315,7 @@ export function ProfileEditForm({ employee }: ProfileEditFormProps) {
               <GuideLabel
                 icon={<Eye size={15} />}
                 title="公開中"
-                description="社員公開プロフィールに表示されます"
+                description="公開プロフィールに表示されます"
                 tone="public"
               />
               <GuideLabel

@@ -30,9 +30,9 @@ export function AppShell({ viewer, children }: AppShellProps) {
                 <BrainCircuit size={21} />
               </div>
               <div className="min-w-0">
-                <p className="hidden text-sm font-semibold text-sky-600 sm:block">Career Profile</p>
+                <p className="hidden text-sm font-semibold text-sky-600 sm:block">Talent Profile</p>
                 <h1 className="truncate text-base font-bold tracking-tight text-[#0f2f57] sm:text-xl">
-                  社員公開プロフィール
+                  キャリアプロフィール
                 </h1>
               </div>
             </Link>
@@ -74,8 +74,8 @@ export function AppShell({ viewer, children }: AppShellProps) {
       <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 md:px-5 md:py-8 lg:px-8">{children}</main>
       <footer className="hidden border-t border-slate-200 bg-slate-50 md:block">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <span>現在はlocalStorageモックで保存しています。将来Supabase Auth / Storage / DBへ移行する前提です。</span>
-          <span className="text-[#0f2f57]">MVP 0: 社員情報・公開プロフィール基盤</span>
+          <span>現在はSupabase Auth連携を進めています。プロフィール情報は段階的にDBへ移行します。</span>
+          <span className="text-[#0f2f57]">MVP 0: キャリアプロフィール基盤</span>
         </div>
       </footer>
       <MobileTabBar viewer={viewer} />

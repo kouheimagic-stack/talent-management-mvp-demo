@@ -31,7 +31,7 @@ export default async function EmployeesPage({ searchParams }: EmployeesPageProps
         <div>
           <p className="text-sm font-semibold text-sky-600">People directory</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0f2f57] md:text-3xl">
-            社員公開プロフィール一覧
+            社員を探す
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 md:mt-3 md:text-base">
             社内の人を知り、得意領域、資格、キャリアの参考になる公開情報を探します。非公開情報は表示されません。

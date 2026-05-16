@@ -48,7 +48,7 @@ export function DevelopmentPlaceholder({
           <Link href={homeHref}>自分のトップへ戻る</Link>
         </Button>
         <Button asChild variant="secondary">
-          <Link href="/employees">社員公開プロフィール一覧を見る</Link>
+          <Link href="/employees">社員を探す</Link>
         </Button>
       </div>
     </section>
