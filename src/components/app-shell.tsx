@@ -74,7 +74,7 @@ export function AppShell({ viewer, children }: AppShellProps) {
       <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 md:px-5 md:py-8 lg:px-8">{children}</main>
       <footer className="hidden border-t border-slate-200 bg-slate-50 md:block">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <span>現在はSupabase Auth連携を進めています。プロフィール情報は段階的にDBへ移行します。</span>
+          <span>現在はMVP 0デモとして、プロフィール情報をlocalStorageに保存しています。</span>
           <span className="text-[#0f2f57]">MVP 0: キャリアプロフィール基盤</span>
         </div>
       </footer>

@@ -16,16 +16,16 @@ export default async function MyPage() {
           マイページ
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 md:mt-3 md:text-base">
-          Supabase Authでログイン中の社員基本情報を表示しています。
+          自分のプロフィール情報を整え、社内に公開する情報を確認できます。
         </p>
       </div>
       <section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="blue">Supabase接続中</Badge>
+          <Badge variant="blue">MVP 0デモ</Badge>
           <Badge variant={viewer.accountStatus === "active" ? "success" : "warning"}>
             {viewer.accountStatus ?? "active"}
           </Badge>
-          <Badge variant="default">{viewer.role}</Badge>
+          <Badge variant="default">ローカルログイン</Badge>
         </div>
         <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Info label="氏名" value={viewer.name} />
@@ -35,7 +35,6 @@ export default async function MyPage() {
           <Info label="役職" value={viewer.position} />
           <Info label="等級" value={viewer.grade} />
           <Info label="employee_id" value={viewer.employeeId} />
-          <Info label="auth_user_id" value={viewer.authUserId} />
         </div>
       </section>
       <EmployeeCareerHome employee={myEmployee} viewer={viewer} />

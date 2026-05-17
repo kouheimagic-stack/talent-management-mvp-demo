@@ -21,7 +21,7 @@ export const mockUsers: MockUser[] = [
     id: "user-employee-001",
     employeeId: "emp-001",
     name: "佐藤 美咲",
-    email: "misaki.sato@example.com",
+    email: "employee@example.com",
     password: "password123",
     role: "employee",
     title: "一般社員",
@@ -36,7 +36,7 @@ export const mockUsers: MockUser[] = [
     id: "user-manager-001",
     employeeId: "mgr-001",
     name: "高橋 健",
-    email: "ken.takahashi@example.com",
+    email: "manager@example.com",
     password: "password123",
     role: "manager",
     title: "上司",
@@ -90,6 +90,9 @@ export function toViewer(user: MockUser): Viewer {
     employeeId: user.employeeId,
     email: user.email,
     name: user.name,
+    department: user.department,
+    position: user.title,
+    accountStatus: user.accountStatus === "suspended" ? "suspended" : "active",
     permittedSensitiveEmployeeIds: user.permittedSensitiveEmployeeIds,
   };
 }

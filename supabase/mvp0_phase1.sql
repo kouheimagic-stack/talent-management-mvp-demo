@@ -157,6 +157,10 @@ insert into employees (
   employment_status
 )
 values
+  ('DEMO-0001', '一般社員 デモ', 'イッパンシャイン デモ', 'employee@example.com', 'プロダクト開発部', 'アプリチーム', 'メンバー', 'G2', '2023-04-01', 'active'),
+  ('DEMO-0002', '上司 デモ', 'ジョウシ デモ', 'manager@example.com', 'プロダクト開発部', 'アプリチーム', 'マネージャー', 'G5', '2018-04-01', 'active'),
+  ('DEMO-0003', '人事 デモ', 'ジンジ デモ', 'hr@example.com', '人事企画部', 'HRBPチーム', 'HR担当', 'G4', '2020-10-01', 'active'),
+  ('DEMO-0004', '管理者 デモ', 'カンリシャ デモ', 'admin@example.com', '情報システム部', '社内基盤チーム', '管理者', 'G6', '2017-04-01', 'active'),
   ('TM-1001', '佐藤 美咲', 'サトウ ミサキ', 'misaki.sato@example.com', 'プロダクト開発部', '決済チーム', 'プロダクトマネージャー', 'G4', '2020-04-01', 'active'),
   ('TM-1034', '山本 蓮', 'ヤマモト レン', 'ren.yamamoto@example.com', 'データ戦略部', '分析基盤チーム', 'データサイエンティスト', 'G3', '2022-10-01', 'active'),
   ('TM-1088', '田中 葵', 'タナカ アオイ', 'aoi.tanaka@example.com', '人事企画部', 'HRBPチーム', 'HRビジネスパートナー', 'G4', '2019-07-01', 'active')
@@ -186,6 +190,35 @@ set
 --   'active'
 -- from employees
 -- where employees.email = 'misaki.sato@example.com'
+-- on conflict (auth_user_id) do update
+-- set employee_id = excluded.employee_id,
+--     role = excluded.role,
+--     account_status = excluded.account_status,
+--     updated_at = now();
+
+-- MVP 0デモユーザー4名をまとめて紐づけるSQL例:
+-- 先に Supabase Dashboard > Authentication > Users で
+-- employee@example.com / manager@example.com / hr@example.com / admin@example.com を作成してから実行します。
+--
+-- insert into user_profiles (auth_user_id, employee_id, role, account_status)
+-- select
+--   auth_users.id,
+--   employees.id,
+--   case employees.email
+--     when 'employee@example.com' then 'employee'
+--     when 'manager@example.com' then 'manager'
+--     when 'hr@example.com' then 'hr'
+--     when 'admin@example.com' then 'admin'
+--   end,
+--   'active'
+-- from auth.users auth_users
+-- join employees on lower(employees.email) = lower(auth_users.email)
+-- where employees.email in (
+--   'employee@example.com',
+--   'manager@example.com',
+--   'hr@example.com',
+--   'admin@example.com'
+-- )
 -- on conflict (auth_user_id) do update
 -- set employee_id = excluded.employee_id,
 --     role = excluded.role,
