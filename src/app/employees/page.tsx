@@ -21,7 +21,7 @@ export default async function EmployeesPage({ searchParams }: EmployeesPageProps
   const viewer = await getCurrentViewer();
   const view = params.view === "table" ? "table" : "cards";
   const [employees, departments] = await Promise.all([
-    listEmployees(viewer, params.q, params.department, params.rating, params.interview, params.specialty),
+    listEmployees(viewer, undefined, params.department),
     getDepartments(viewer),
   ]);
 

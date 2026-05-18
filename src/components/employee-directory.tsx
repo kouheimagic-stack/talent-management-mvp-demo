@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CalendarDays,
   Eye,
@@ -11,6 +13,7 @@ import {
 import Link from "next/link";
 import { EmployeeCard } from "@/components/employee-card";
 import { Pill } from "@/components/ui";
+import { readStoredPublicProfile, type ProfileVisibilityStatus } from "@/lib/profile-storage";
 import { nextAction, ratingTone } from "@/lib/talent-utils";
 import type { EmployeeProfile, ViewerRole } from "@/types/talent";
 
@@ -42,6 +45,9 @@ export function EmployeeDirectory({
   const showPrivateSignals = role !== "employee";
   const isPublicDirectory = role === "employee";
   const effectiveView = isPublicDirectory ? "cards" : view;
+  const visibleEmployees = isPublicDirectory
+    ? employees.filter((employee) => matchesPublicProfileSearch(employee, query, specialty))
+    : employees;
   const viewParams = new URLSearchParams({
     q: query ?? "",
     department: department ?? "all",
@@ -130,7 +136,7 @@ export function EmployeeDirectory({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
-          {employees.length}名を表示中。
+          {visibleEmployees.length}名を表示中。
           {showPrivateSignals
             ? "カードでは人材像、テーブルでは比較を優先します。"
             : "社員が公開している自己紹介、得意領域、資格、将来やりたいことだけを表示します。"}
@@ -159,14 +165,14 @@ export function EmployeeDirectory({
         ) : null}
       </div>
 
-      {employees.length === 0 ? (
+      {visibleEmployees.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
           <h3 className="text-lg font-bold text-[#0f2f57]">該当する公開プロフィールがありません</h3>
           <p className="mt-2 text-sm text-slate-500">検索語、部署、資格・得意領域の条件を少し広げてください。</p>
         </div>
       ) : effectiveView === "cards" ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {employees.map((employee) => (
+          {visibleEmployees.map((employee) => (
             <EmployeeCard key={employee.id} employee={employee} role={role} />
           ))}
         </div>
@@ -195,7 +201,7 @@ export function EmployeeDirectory({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {employees.map((employee) => (
+              {visibleEmployees.map((employee) => (
                 <tr key={employee.id} className="hover:bg-slate-50">
                   <td className="px-4 py-4">
                     <Link href={`/employees/${employee.id}`} className="flex items-center gap-3">
@@ -277,4 +283,53 @@ export function EmployeeDirectory({
       )}
     </div>
   );
+}
+
+function matchesPublicProfileSearch(employee: EmployeeProfile, query?: string, specialty?: string) {
+  const normalizedQuery = query?.trim().toLowerCase();
+  const normalizedSpecialty = specialty?.trim().toLowerCase();
+  const profile = readStoredPublicProfile(employee);
+  const visible = {
+    selfIntroduction: getPublicText(profile.selfIntroduction, profile.visibility.selfIntroduction),
+    careerHistories: getPublicText(profile.careerHistories, profile.visibility.careerHistories),
+    qualifications: getPublicText(profile.qualifications, profile.visibility.qualifications),
+    strengths: getPublicText(profile.strengths, profile.visibility.strengths),
+    skillsToGrow: getPublicText(profile.skillsToGrow, profile.visibility.skillsToGrow),
+    desiredCareerPublic: getPublicText(profile.desiredCareerPublic, profile.visibility.desiredCareerPublic),
+  };
+
+  if (normalizedQuery) {
+    const haystack = [
+      employee.fullName,
+      employee.fullNameKana,
+      employee.department,
+      employee.position,
+      visible.selfIntroduction,
+      visible.careerHistories,
+      visible.qualifications,
+      visible.strengths,
+      visible.skillsToGrow,
+      visible.desiredCareerPublic,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    if (!haystack.includes(normalizedQuery)) {
+      return false;
+    }
+  }
+
+  if (normalizedSpecialty) {
+    const haystack = [visible.qualifications, visible.strengths].join(" ").toLowerCase();
+
+    if (!haystack.includes(normalizedSpecialty)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function getPublicText(value: string, visibility: ProfileVisibilityStatus) {
+  return visibility === "public" ? value : "";
 }
