@@ -438,12 +438,19 @@ function PhotoPanel({
   return (
     <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-3xl sm:p-5">
       <div className="relative mx-auto w-fit">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={draft.photoUrl || employee.photoUrl}
-          alt={`${employee.fullName}の顔写真プレビュー`}
-          className="size-36 rounded-[1.5rem] border border-slate-200 object-cover ring-4 ring-sky-50 sm:size-40 sm:rounded-[1.75rem]"
-        />
+        {draft.photoUrl || employee.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={draft.photoUrl || employee.photoUrl}
+            alt={`${employee.fullName}の顔写真プレビュー`}
+            className="size-36 rounded-[1.5rem] border border-slate-200 object-cover ring-4 ring-sky-50 sm:size-40 sm:rounded-[1.75rem]"
+          />
+        ) : (
+          <DefaultAvatar
+            name={employee.fullName}
+            className="size-36 rounded-[1.5rem] border border-slate-200 ring-4 ring-sky-50 sm:size-40 sm:rounded-[1.75rem]"
+          />
+        )}
         <div className="absolute -right-2 -top-2">
           <VisibilityBadge visibility={draft.visibility.photo} />
         </div>

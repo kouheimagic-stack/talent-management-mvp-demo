@@ -21,6 +21,7 @@ type EmployeeCareerHomeProps = {
 
 export function EmployeeCareerHome({ employee, viewer }: EmployeeCareerHomeProps) {
   const storedProfile = useMemo(() => readStoredPublicProfile(employee), [employee]);
+  const photoUrl = storedProfile.photoUrl || employee.photoUrl;
   const visibility = storedProfile.visibility;
   const visibilitySummary = getVisibilitySummary(storedProfile);
   const completion = getCompletion(storedProfile);
@@ -48,12 +49,18 @@ export function EmployeeCareerHome({ employee, viewer }: EmployeeCareerHomeProps
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-[220px_1fr]">
           <div className="flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={storedProfile.photoUrl || employee.photoUrl}
-              alt={`${employee.fullName}の顔写真`}
-              className="size-36 rounded-3xl object-cover ring-4 ring-sky-50"
-            />
+            {photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={photoUrl}
+                alt={`${employee.fullName}の顔写真`}
+                className="size-36 rounded-3xl object-cover ring-4 ring-sky-50"
+              />
+            ) : (
+              <div className="flex size-36 items-center justify-center rounded-3xl bg-sky-100 text-4xl font-bold text-sky-800 ring-4 ring-sky-50">
+                {employee.fullName.slice(0, 1)}
+              </div>
+            )}
             <Badge variant={visibility.photo === "public" ? "success" : "default"} className="mt-4">
               {visibility.photo === "public" ? "顔写真 公開中" : "顔写真 非公開"}
             </Badge>

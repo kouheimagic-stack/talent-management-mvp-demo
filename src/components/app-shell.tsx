@@ -1,7 +1,15 @@
 import {
+  BriefcaseBusiness,
   BrainCircuit,
+  Building2,
+  ClipboardList,
+  Eye,
+  FileSpreadsheet,
   LogOut,
+  Settings,
   ShieldCheck,
+  SlidersHorizontal,
+  UserCog,
   UserRoundPen,
   UsersRound,
 } from "lucide-react";
@@ -18,7 +26,7 @@ type AppShellProps = {
 };
 
 export function AppShell({ viewer, children }: AppShellProps) {
-  const nav = getNavigation();
+  const nav = getNavigation(viewer);
 
   return (
     <div className="min-h-screen bg-[#fbfdff] text-slate-900">
@@ -89,12 +97,33 @@ type NavItem = {
   icon: LucideIcon;
 };
 
-function getNavigation(): NavItem[] {
+function getNavigation(viewer: Viewer): NavItem[] {
   const mvp0Nav: NavItem[] = [
     { href: "/me", label: "マイページ", icon: UserRoundPen },
     { href: "/profile/edit", label: "プロフィール編集", icon: UserRoundPen },
     { href: "/employees", label: "社員を探す", icon: UsersRound },
+    { href: `/employees/${viewer.employeeId}`, label: "自分の公開プロフィール", icon: Eye },
   ];
 
-  return mvp0Nav;
+  const roleNav: Record<Viewer["role"], NavItem[]> = {
+    employee: [],
+    manager: [
+      { href: "/manager", label: "上司トップ", icon: BriefcaseBusiness },
+      { href: "/manager/reports", label: "開発中：部下一覧", icon: UsersRound },
+      { href: "/meetings", label: "開発中：面談支援", icon: ClipboardList },
+    ],
+    hr: [
+      { href: "/hr", label: "人事トップ", icon: BriefcaseBusiness },
+      { href: "/admin/users", label: "開発中：ユーザー管理", icon: UserCog },
+      { href: "/admin/org", label: "開発中：組織管理", icon: Building2 },
+      { href: "/admin/csv", label: "開発中：CSV管理", icon: FileSpreadsheet },
+    ],
+    admin: [
+      { href: "/admin", label: "管理者トップ", icon: BriefcaseBusiness },
+      { href: "/admin/permissions", label: "開発中：権限管理", icon: SlidersHorizontal },
+      { href: "/admin/settings", label: "開発中：システム設定", icon: Settings },
+    ],
+  };
+
+  return [...mvp0Nav, ...roleNav[viewer.role]];
 }

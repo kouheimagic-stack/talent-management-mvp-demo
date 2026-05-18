@@ -3,7 +3,7 @@ import { supabaseAccessTokenCookieName } from "@/lib/auth";
 import { mockEmployees } from "@/lib/mock-employees";
 import { createSupabaseServerClient, SupabaseConfigError } from "@/lib/supabase/server";
 import type { EmployeeProfile, Viewer } from "@/types/talent";
-import { canViewEmployee } from "./permissions";
+import { canViewEmployee, mockUsers, toViewer } from "./permissions";
 
 type SupabaseEmployeeRow = {
   id: string;
@@ -30,7 +30,7 @@ export async function listEmployees(
   const normalizedQuery = query?.trim().toLowerCase();
   const normalizedSpecialty = specialty?.trim().toLowerCase();
 
-  return mockEmployees
+  return getMvp0Employees()
     .filter((employee) => canViewEmployee(employee, viewer))
     .filter((employee) => {
       if (!department || department === "all") {
@@ -94,7 +94,7 @@ export async function listEmployees(
 }
 
 export async function getEmployeeById(id: string): Promise<EmployeeProfile | undefined> {
-  const mockEmployee = mockEmployees.find((employee) => employee.id === id);
+  const mockEmployee = getMvp0Employees().find((employee) => employee.id === id);
   if (mockEmployee) {
     return mockEmployee;
   }
@@ -116,6 +116,15 @@ export async function getEmployeeById(id: string): Promise<EmployeeProfile | und
     }
     return undefined;
   }
+}
+
+function getMvp0Employees() {
+  const existingIds = new Set(mockEmployees.map((employee) => employee.id));
+  const roleProfiles = mockUsers
+    .filter((user) => !existingIds.has(user.employeeId))
+    .map((user) => employeeProfileFromViewer(toViewer(user)));
+
+  return [...mockEmployees, ...roleProfiles];
 }
 
 export async function getDepartments(viewer: Viewer) {

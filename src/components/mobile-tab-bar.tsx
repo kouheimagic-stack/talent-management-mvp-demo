@@ -15,10 +15,6 @@ const tabBase =
 export function MobileTabBar({ viewer }: MobileTabBarProps) {
   const pathname = usePathname();
 
-  if (viewer.role !== "employee") {
-    return null;
-  }
-
   const previewPath = `/employees/${viewer.employeeId}`;
   const tabs = [
     {

@@ -1,16 +1,11 @@
-import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { ProfileEditForm } from "@/components/profile-edit-form";
 import { getCurrentViewer } from "@/lib/auth";
-import { getEmployeeById } from "@/lib/employees";
+import { employeeProfileFromViewer, getEmployeeById } from "@/lib/employees";
 
 export default async function ProfileEditPage() {
   const viewer = await getCurrentViewer();
-  const employee = await getEmployeeById(viewer.employeeId);
-
-  if (!employee) {
-    notFound();
-  }
+  const employee = (await getEmployeeById(viewer.employeeId)) ?? employeeProfileFromViewer(viewer);
 
   return (
     <AppShell viewer={viewer}>

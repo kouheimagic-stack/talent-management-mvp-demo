@@ -2,15 +2,15 @@ import { AppShell } from "@/components/app-shell";
 import { DevelopmentPlaceholder } from "@/components/development-placeholder";
 import { getCurrentViewer, requireRole } from "@/lib/auth";
 
-export default async function OrganizationAdminPage() {
+export default async function AdminPermissionsPage() {
   const viewer = await getCurrentViewer();
-  requireRole(viewer, ["hr", "admin"]);
+  requireRole(viewer, ["admin"]);
 
   return (
     <AppShell viewer={viewer}>
       <DevelopmentPlaceholder
-        title="組織管理"
-        description="部署、チーム、上司・部下関係の管理はMVP 2で実装します。"
+        title="権限管理"
+        description="ロールに加えて細かなpermissionsを設定する機能はMVP 2以降で実装します。MVP 0では全ユーザーが個人プロフィールを持つ前提を確認できます。"
         plannedFor="MVP 2"
         role={viewer.role}
       />

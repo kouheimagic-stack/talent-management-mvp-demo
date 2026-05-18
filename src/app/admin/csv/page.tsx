@@ -4,7 +4,7 @@ import { getCurrentViewer, requireRole } from "@/lib/auth";
 
 export default async function CsvAdminPage() {
   const viewer = await getCurrentViewer();
-  requireRole(viewer, ["admin"]);
+  requireRole(viewer, ["hr", "admin"]);
 
   return (
     <AppShell viewer={viewer}>
